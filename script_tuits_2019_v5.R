@@ -508,3 +508,8 @@ votos_bsas <- read_html(url_bsas) %>%
 #####
 ###Exploración de clivajes entre los discursos
 #####
+
+
+
+
+str_replace_all("g.g.g.lllasdasd.a", "\\.", "i")

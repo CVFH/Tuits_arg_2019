@@ -96,7 +96,7 @@ limpiezaTabla <- function(extracto_tabla_renombrada){
     ) ) %>% 
     mutate(Porcentaje = as.numeric(Porcentaje)) %>% 
     mutate(Votos = str_trim(
-      str_replace(Votos,"\\.", "")
+      str_replace_all(Votos,"\\.", "")
     ) ) %>% 
     mutate(Votos = as.numeric(Votos))
   

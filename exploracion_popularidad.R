@@ -290,7 +290,8 @@ presid_popu_ranking <- full_join(presid_popu,
 #####
 # GRAFICOS DE RELACIONES
 #####
-
+# provincias y nacion por separado
+#####
 # Provincias
 
 #rts
@@ -334,7 +335,9 @@ presid_favspromedio_porcentaje <- ggplot(na.omit(presid_popu_ranking),
   geom_point(size = 2,alpha = 0.8) +
   theme_minimal()
 
-# relaciones absolutas
+#####
+# TODOS LOS CANDIDATOS
+#####
 
 presid_popu_ranking <- presid_popu_ranking %>% rename("Partido/Alianza" = "Partido o alianza")
 candidatos_popu_ranking <- rbind(gobernadores_popu_ranking, presid_popu_ranking) %>% 
@@ -347,17 +350,64 @@ candidatos_rts_votos <- ggplot(candidatos_popu_ranking,
   geom_point(size = 2,alpha = 0.8) +
   theme_minimal()
 
+candidatos_rtspromedio_votos <- ggplot(candidatos_popu_ranking, 
+                               aes(Votos,
+                                   rts_obtenidos_promedio, 
+                                   colour= Distrito)) +
+  geom_point(size = 2,alpha = 0.8) +
+  theme_minimal()
+
 candidatos_favs_votos <- ggplot(candidatos_popu_ranking, 
                                aes(log(favs_obtenidos_totales), 
                                    log(Votos),
                                    colour= Distrito)) +
   geom_point(size = 2,alpha = 0.8) +
-  geom_text(aes(label=screen_name),hjust=0, vjust=0) +
+ # geom_text(aes(label=screen_name),hjust=0, vjust=0) +
+  theme_minimal()
+
+candidatos_favs_votos <- ggplot(candidatos_popu_ranking, 
+                                aes(favs_obtenidos_promedio, 
+                                    Votos,
+                                    colour= Distrito)) +
+  geom_point(size = 2,alpha = 0.8) +
+  # geom_text(aes(label=screen_name),hjust=0, vjust=0) +
+  theme_minimal()
+
+candidatos_emitidos_votos <- ggplot(candidatos_popu_ranking, 
+                                    aes(cantidad_emitidos_totales, 
+                                        Votos,
+                                        colour= Distrito)) +
+  geom_point(size = 2,alpha = 0.8) +
+  # geom_text(aes(label=screen_name),hjust=0, vjust=0) +
+  theme_minimal()
+
+candidatos_emitidos_porcentaje <- ggplot(candidatos_popu_ranking, 
+                                    aes(cantidad_emitidos_totales, 
+                                        Porcentaje,
+                                        colour= Distrito)) +
+  geom_point(size = 2,alpha = 0.8) +
+  # geom_text(aes(label=screen_name),hjust=0, vjust=0) +
+  theme_minimal()
+
+candidatos_rts_emitidos <- ggplot(candidatos_popu_ranking, 
+                                         aes(cantidad_emitidos_totales, 
+                                             rts_obtenidos_totales,
+                                             colour= Distrito)) +
+  geom_point(size = 2,alpha = 0.8) +
+   geom_text(aes(label=screen_name),hjust=0, vjust=0) +
   theme_minimal()
 
 
-# Patchworks
+#####
+# MAPAS
+#####
 
+
+
+
+#####
+# Patchworks (pendiente trabajar)
+#####
 
 rtspromedio_porcentaje <- gobernadores_rtspromedio_porcentaje | presid_rtspromedio_porcentaje  +
   plot_layout(heights = c(4, 14))
