@@ -1,6 +1,6 @@
 #####
 #apertura de liberarias
-#####
+##### 
 
 require(tidyverse)
 require(readxl)
@@ -75,6 +75,22 @@ datos_base <- read_xlsx("Data/datos_base.xlsx")
 #transformacion de datos base
 #####
 joined_presid <- rbind(presid1, presid2, presid3, presid4, presid5, presid6)
+jpined_gobernadores <- rbind(
+  formosa1,
+  formosa2,
+  sluis1,
+  sluis2,
+  sfe1,
+  sfe2,
+  baires1,
+  baires2,
+  caba1,
+  caba2,
+  tfuego1,
+  tfuego2,
+  lrioja1,
+  lrioja2,
+  catamarca1 )
 
 ver <- show_available_elections()
 #####
@@ -341,6 +357,29 @@ votos_gobernadores <- left_join(votos_gobernadores,
                             datos_base)
 
 #GRAIFICANDO RELACIONES 
+
+
+
+fecha_paso <- as.Date("2019-08-11")
+fecha_grales <- as.Date("2019-10-27")
+
+
+
+presid_popu <- joined_presid %>%  
+  mutate(fecha_tuit = as.Date(created_at)) %>% 
+  subset( fecha_tuit < fecha_grales & fecha_tuit > fecha_paso ) %>% 
+  select(fecha_tuit, screen_name, rts,fav_count, followers_count, friends_count )
+
+presid_popu_ranking <- presid_popu %>% 
+  group_by(screen_name) %>% 
+  summarise(rts_obtenidos_totales = sum(rts),
+            favs_obtenidos_totales = sum(fav_count),
+            cantidad_emitidos_totales = n(),
+            rts_obtenidos_promedio = rts_obtenidos_totales/cantidad_emitidos_totales,
+            favs_obtenidos_promedio = favs_obtenidos_totales/cantidad_emitidos_totales
+  )
+
+
 #####
 # datos presidenciales
 
