@@ -6,6 +6,7 @@
 
 #apertura de liberarias
 
+require(stopwords)
 require(tidyverse)
 
 # FUNCIONES 
@@ -53,7 +54,9 @@ transformarEnlacesTwitter <- function(df_tuits){
   #reemplazando al estándar "https://t.co/"
   
   df_tuits_enlaces_resaltados <- df_tuits %>% 
-    mutate(text = str_replace_all(text,"https://t.co/", "enlacetuit"))
+    mutate(text = str_replace_all(text,"https://t.co/", "enlacetuit")) %>% 
+    mutate(text = str_replace_all(text,"#", "hashtag")) %>% 
+    mutate(text = str_replace_all(text,"@", "mention"))
   
   return(df_tuits_enlaces_resaltados)
 }
@@ -61,36 +64,97 @@ transformarEnlacesTwitter <- function(df_tuits){
 
 # funciones agregadas 
 
-tokenizarTextoTuits <- function(df_tuits, filtrar_campaña = TRUE){
+tokenizarTextoTuits <- function(df_tuits, filtrar_campaña = TRUE, deshacerse_RT = TRUE, tipo_token = "words", grams = 2){
   
   ## recibe un df con tuits
   # se espera que el texto de los mismos esté contenido en una variable "text"
   ## devuelve su texto tokenizado
   ## optativo: no filtrar tuits de campaña (por variable campaña)
+  
   if (isTRUE(filtrar_campaña)) { df_tuits <- df_tuits %>% subset( Campaña ==1 ) }
+  if (isTRUE(deshacerse_RT)) { df_tuits <- df_tuits %>% subset( !str_detect(text, "^RT") )}
   
   seleccion_text <- df_tuits %>%  
     seleccionarTextoTuits() 
   
+  if (tipo_token == "words") {
   seleccion_id_enlaces <- seleccion_text %>% 
     transformarEnlacesTwitter()
   
   seleccion_tokenizada <- seleccion_id_enlaces %>% 
-    unnest_tokens(words, text)
+    unnest_tokens(tokens, text) 
+  }
+  
+  else if (tipo_token == "ngrams") {
+    seleccion_id_enlaces <- seleccion_text %>% 
+      transformarEnlacesTwitter() 
+    
+    seleccion_tokenizada <- seleccion_id_enlaces %>% 
+      unnest_tokens(tokens, text, token = "ngrams", n = grams) 
+    }
+  
+  else { 
+    seleccion_tokenizada <- seleccion_text %>% 
+      unnest_tokens(tokens, text, token = tipo_token) 
+    } 
   
   return(seleccion_tokenizada)
 }
 
-
-limpiarTokens <- function(seleccion_tokenizada){
+limpiarTokens <- function(seleccion_tokenizada, bigramas = FALSE, lista_estandar= TRUE, largo = FALSE, palabras_web = FALSE, mentions = FALSE, hashtags = FALSE){
   
-  #recibe una lista de tokens, en una variable words
-  # retira aquellos que consideramos innecesarios para el analisis
+  #recibe una lista de tokens, en una variable tokens 
+  # retira aquellos que consideramos innecesarios para el analisis:
+  # en principio la lista de palabras que provee la funcion get_stopwords del paquete stopwords
+  # optativo: borrar las palabras cortas (menos de tres caracteres)
+  # tambien optativo: borrar enlaces de tuiter 
+  # finalmente se ofrece la opción de limpiar bigramas (solo palabras stopwords)
   
-  tokens_limpios <- seleccion_tokenizada %>% 
-    subset(str_length(words) > 3 & !(words == "no"))  %>%  
-    subset(!str_detect(words, "(http)|(t.co)")) 
-
+  palabras_a_borrar <- get_stopwords("es") %>%
+    rename(tokens = "word")
+  
+  tokens_limpios <- seleccion_tokenizada
+  
+  if (isTRUE(bigramas)) {
+    
+    lista_estandar <- FALSE 
+    
+    bigrams_separated <- tokens_limpios %>%
+      separate(tokens, c("word1", "word2"), sep = " ")
+    
+    bigrams_filtered <- bigrams_separated %>%
+      filter(!word1 %in% palabras_a_borrar$tokens) %>%
+      filter(!word2 %in% palabras_a_borrar$tokens)
+    
+    tokens_limpios <- bigrams_filtered %>%
+      unite(tokens, word1, word2, sep = " ")
+  }
+  
+  if (isTRUE(lista_estandar)){
+    tokens_limpios <- tokens_limpios %>% 
+      anti_join(palabras_a_borrar) 
+  }
+  
+  if (isTRUE(largo)) {
+    tokens_limpios <- tokens_limpios %>% 
+    subset(str_length(tokens) > 3 & !(tokens == "no"))
+  }
+  
+  if (isTRUE(palabras_web)) {
+    tokens_limpios <- tokens_limpios %>% 
+    subset(!str_detect(tokens, "(http)|(t.co)|(enlacetuit)|(hashtag)|(mention)"))  
+  }
+  if (isTRUE(mentions)) {
+    tokens_limpios <- tokens_limpios %>% 
+      subset(!str_detect(tokens, "(mention)"))  
+  }
+  if (isTRUE(hashtags)) {
+    tokens_limpios <- tokens_limpios %>% 
+      subset(!str_detect(tokens, "(hashtag)"))  
+  }
   return(tokens_limpios)
   
 }
+
+
+
