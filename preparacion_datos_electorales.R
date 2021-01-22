@@ -1,6 +1,7 @@
 # preparacion_datos_electorales.R
 
-# en este archivo abrimos y preparamos datos electorales 
+# en este archivo abrimos y preparamos datos electorales
+# PENDIENTE: CONVERTIR A FUNCION LA TRAIDA DE ARCHIVOS
 #####
 # APERTURA DE LIBRERIAS
 #####
@@ -36,7 +37,9 @@ votos_presid <- procesar_datos_wiki(votos_presid_crudo, "Nación")
 # agregamos datos de base
 
 votos_presid <- left_join(votos_presid, 
-                          datos_base)
+                          datos_base) %>% 
+  dplyr::rename( 'Partido/Alianza' = 'Partido o alianza')
+
 #####
 # PROVINCIALES 
 #####
@@ -88,7 +91,7 @@ votos_tfuego_crudo <- extraer_datos_wiki(url_tfuego, 1)
 votos_tfuego <- votos_tfuego_crudo %>% 
   reducirLargoTabla() %>% 
   agregarColumnas("Tierra del Fuego") %>% 
-  rename( 'Partido/Alianza' = "Agrupación")
+  dplyr::rename( 'Partido/Alianza' = "Agrupación")
 
 # Formosa 
 
@@ -122,3 +125,9 @@ votos_gobernadores <- bind_rows(votos_sfe,
 #añadimos id de la cuenta de tuiter
 votos_gobernadores <- left_join(votos_gobernadores, 
                                 datos_base)
+
+# unimos ambas bases
+
+votos_totales <- rbind(votos_presid,
+                       votos_gobernadores)
+

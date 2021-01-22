@@ -76,7 +76,7 @@ renombrarTabla <- function(extracto_tabla_sin_nas){
   ## de las tablas obtenidas de wikipedia con datos sobre la elección a gobernador
   #en este caso: cambiamos nombres de las columnas
   extracto_tabla_renombrada <- extracto_tabla_sin_nas %>% 
-    rename(
+    dplyr::rename(
       Candidato = 1,
       Vicecandidato = 2,
       Porcentaje = "%") 
@@ -90,15 +90,15 @@ limpiezaTabla <- function(extracto_tabla_renombrada){
   #en este caso:  formateamos variables de interés: votos y porcentaje
   
   extracto_tabla_limpia <- extracto_tabla_renombrada %>%  
-    mutate(Porcentaje = str_replace(Porcentaje,"\\%", "")) %>% 
-    mutate(Porcentaje = str_trim(
+    dplyr::mutate(Porcentaje = str_replace(Porcentaje,"\\%", "")) %>% 
+    dplyr::mutate(Porcentaje = str_trim(
       str_replace(Porcentaje,"\\,", ".")
     ) ) %>% 
-    mutate(Porcentaje = as.numeric(Porcentaje)) %>% 
-    mutate(Votos = str_trim(
+    dplyr::mutate(Porcentaje = as.numeric(Porcentaje)) %>% 
+    dplyr::mutate(Votos = str_trim(
       str_replace_all(Votos,"\\.", "")
     ) ) %>% 
-    mutate(Votos = as.numeric(Votos))
+    dplyr::mutate(Votos = as.numeric(Votos))
   
   
   return(extracto_tabla_limpia)
@@ -113,7 +113,7 @@ agregarVotosGobernador <- function(tabla_limpia){
   
   tabla_summarized <- tabla_limpia %>% 
     group_by(Candidato) %>% 
-    summarize(Votos = sum(Votos),
+    dplyr::summarise(Votos = sum(Votos),
               Porcentaje = sum(Votos)/votos_afirmativos*100)
   
   return(tabla_summarized)
@@ -126,7 +126,7 @@ reducirLargoTabla <- function(tabla_limpia_agregada){
   
   tabla_reducida <- tabla_limpia_agregada %>% 
     subset(!str_detect(
-      tabla_limpia_agregada$Candidato, "(Vot)|(Elect)|(Particip)|(Tot)")) 
+      tabla_limpia_agregada$Candidato, "(Vot)|(Elect)|(Particip)|(Tot)|(Absten)")) 
   
   return(tabla_reducida)
 }

@@ -53,7 +53,7 @@ traerDatos <- function(tipo_dato){
   desdobladas_filenames <- c(formosa1, formosa2, sluis1, sluis2, sfe1, sfe2, tfuego1, tfuego2)
   
   desdobladas_df <- desdobladas_filenames %>% 
-    map_dfr(read.csv, encoding = "UTF-8" ) %>% 
+    map_dfr(read.csv, encoding = "UTF-8", stringsAsFactors = FALSE) %>% 
     determinarTuitsCampaña(fecha_campaña_desdoblada, fecha_elecciones_desdoblada)
   
   
@@ -95,11 +95,11 @@ traerDatos <- function(tipo_dato){
   # resultó más sencillo descargarlos independientemente y luego unirlos
   
   presid1 <- read_xlsx("Data/alferdez.xlsx")
-  presid2 <- read.csv("Data/mauriciomacri.csv", encoding = "UTF-8")
-  presid3 <- read.csv("Data/RLavagna.csv", encoding = "UTF-8")
-  presid4 <- read.csv("Data/NicolasdelCano.csv", encoding = "UTF-8")
-  presid5 <- read.csv("Data/juanjomalvinas.csv", encoding = "UTF-8")
-  presid6 <- read.csv("Data/jlespert.csv", encoding = "UTF-8")
+  presid2 <- read.csv("Data/mauriciomacri.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
+  presid3 <- read.csv("Data/RLavagna.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
+  presid4 <- read.csv("Data/NicolasdelCano.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
+  presid5 <- read.csv("Data/juanjomalvinas.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
+  presid6 <- read.csv("Data/jlespert.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
   
   joined_presid <- rbind(presid1, presid2, presid3, presid4, presid5, presid6)
   
@@ -138,6 +138,7 @@ traerDatos <- function(tipo_dato){
   
   else {
     devolver_data <- "datos no disponibles"
+    #pendiente: hacer un raise warning
   }
  
   return(devolver_data)

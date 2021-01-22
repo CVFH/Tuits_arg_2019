@@ -110,8 +110,9 @@ limpiarTokens <- function(seleccion_tokenizada, bigramas = FALSE, lista_estandar
   # tambien optativo: borrar enlaces de tuiter 
   # finalmente se ofrece la opción de limpiar bigramas (solo palabras stopwords)
   
-  palabras_a_borrar <- get_stopwords("es") %>%
-    rename(tokens = "word")
+  palabras_a_borrar <- stopwords("spanish")  # de tm. funciona mejor
+  # palabras_a_borrar <- get_stopwords("es") %>%
+  #   rename(tokens = "word")
   
   tokens_limpios <- seleccion_tokenizada
   
@@ -123,16 +124,16 @@ limpiarTokens <- function(seleccion_tokenizada, bigramas = FALSE, lista_estandar
       separate(tokens, c("word1", "word2"), sep = " ")
     
     bigrams_filtered <- bigrams_separated %>%
-      filter(!word1 %in% palabras_a_borrar$tokens) %>%
-      filter(!word2 %in% palabras_a_borrar$tokens)
+      filter(!word1 %in% palabras_a_borrar) %>%
+      filter(!word2 %in% palabras_a_borrar)
     
     tokens_limpios <- bigrams_filtered %>%
       unite(tokens, word1, word2, sep = " ")
   }
   
   if (isTRUE(lista_estandar)){
-    tokens_limpios <- tokens_limpios %>% 
-      anti_join(palabras_a_borrar) 
+    tokens_limpios <- tokens_limpios %>%
+      filter(!(tokens %in% palabras_a_borrar))
   }
   
   if (isTRUE(largo)) {
@@ -142,15 +143,15 @@ limpiarTokens <- function(seleccion_tokenizada, bigramas = FALSE, lista_estandar
   
   if (isTRUE(palabras_web)) {
     tokens_limpios <- tokens_limpios %>% 
-    subset(!str_detect(tokens, "(http)|(t.co)|(enlacetuit)|(hashtag)|(mention)"))  
+    subset(!str_detect(tokens, "(http)|(t.co)|(enlacetuit)"))  
   }
   if (isTRUE(mentions)) {
     tokens_limpios <- tokens_limpios %>% 
-      subset(!str_detect(tokens, "(mention)"))  
+      subset(!str_detect(tokens, "(mention)|(@)"))  
   }
   if (isTRUE(hashtags)) {
     tokens_limpios <- tokens_limpios %>% 
-      subset(!str_detect(tokens, "(hashtag)"))  
+      subset(!str_detect(tokens, "(hashtag)|(#)"))  
   }
   return(tokens_limpios)
   
