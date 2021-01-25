@@ -21,6 +21,7 @@ library(ggbiplot) # para graficar PCA
 library(igraph) # para grafos
 library(pander)
 library(tidyverse)
+library(ggwordcloud)
 
 #propias
 
@@ -536,55 +537,166 @@ plot.igraph(grafo_mutuas_dirigido_df,
 
 #####
 # Hashtags #####
-# no logro acomodar las grids
+
 candidatos_hashtags <- joined_candidatos %>% 
   tokenizarTextoTuits() %>% 
   subset(str_detect(tokens, "(hashtag)")) %>% 
   mutate(hashtags = str_replace(tokens, "(hashtag)", "#")) %>% 
   select(-c(tokens)) %>% 
-  dplyr::count(screen_name, hashtags) #%>% 
-  #group_by(screen_name) %>%
-  #slice_max(n, n = 4) %>% 
-  #left_join(datos_base)
+  dplyr::count(screen_name, hashtags) %>% 
+  left_join(datos_base) %>% 
+  group_by(screen_name) %>%
+  slice_max(n, n = 5) 
 
-graphs <- c()
-for (i in datos_base$screen_name) {
-  
-  to_plot <- candidatos_hashtags %>% 
-    filter(screen_name == i) 
-  wordcloud::wordcloud(to_plot$hashtag, to_plot$n, max.words=50, random.order=FALSE, scale=c(3,0.5))
-  gridGraphics::grid.echo()
-  graphs[i] <- as.grob(gridGraphics::grid.grab())
-  
-}
-grid.newpage()
-gridExtra::grid.arrange(graphs[1],
-             graphs[2],
-             graphs[3],
-             graphs[4])
-graphs[1]
-  to_plot <- candidatos_hashtags %>% 
-    filter(screen_name == "alferdez") 
-  wordcloud::wordcloud(to_plot$hashtag, to_plot$n, max.words=10, random.order=FALSE, scale=c(3,0.5))
-  gridGraphics::grid.echo()
-  a <- grid::grid.grab()
-graphs.append(a)
-  
-hashtags_matrix <- candidatos_hashtags %>%  
-  acast(hashtags ~ screen_name, value.var = "n", fill = 0)
+# plot por separado para claridad visual
 
-wordcloud::comparison.cloud(hashtags_matrix,
-                            #colors = c("lightblue", "blue"),
-                            max.words = 4200,
-                            title.size=NULL)
+# de gobernadores
 
-toPlot2 <- df %>% 
-  filter(book == "Pride & Prejudice") 
-wordcloud(toPlot2$word, toPlot2$n, max.words=100, random.order=FALSE, scale=c(3,0.5))
-grid.echo()
-b <- grid.grab()
+plot_gobernador_hashtags <- ggplot(candidatos_hashtags %>% filter(Cargo=="Gobernador"), 
+                                   aes(label = hashtags, 
+                                       size = n,
+                                       colour= Distrito)) +
+  geom_text_wordcloud() +
+  facet_wrap(~screen_name, ncol = 3) +
+  scale_size_area(max_size = 4) + 
+  theme_minimal()
+#quizas hacer tablita o shiny para complementar nube de gobernadores
+
+# de presid
+
+plot_presid_hashtags <- ggplot(candidatos_hashtags %>% filter(Cargo=="Presidente"), 
+                                   aes(label = hashtags, 
+                                       size = n,
+                                       colour=screen_name)) +
+  geom_text_wordcloud() +
+  facet_wrap(~screen_name, ncol = 3) +
+  scale_size_area(max_size = 5) + 
+  theme_minimal()
+
 #####
 # Temas por palabras ########
+
+temas_palabras <- read_xlsx("Data/temas_palabras.xlsx")
+
+temas_palabras_match_tokens <- candidatos_tokenizadas %>% 
+  limpiarTokens(palabras_web = TRUE, hashtags = TRUE, mentions = TRUE) %>% 
+  select(screen_name, tweet_id, tokens)
+
+# calculando coincidencias
+
+for (columna in 1:ncol(temas_palabras)) {
+  
+  testear_coincidencias <- na.omit(as.data.frame(temas_palabras[columna])) %>% 
+    rename( palabras = colnames(temas_palabras[columna]) )
+  
+  new <- ifelse( temas_palabras_match_tokens$tokens %in% testear_coincidencias$palabras, 
+                 "1", 
+                 "0")
+  
+  temas_palabras_match_tokens[ , ncol(temas_palabras_match_tokens) + 1] <- new                  # Append new column
+  
+  colnames(temas_palabras_match_tokens)[ncol(temas_palabras_match_tokens)] <- colnames(temas_palabras[columna])  # Rename column name
+}
+
+temas_palabras_match_tokens_long <- temas_palabras_match_tokens %>%
+  pivot_longer(!c(screen_name, tweet_id, tokens), # una fila para cada combinación tuit/token/tema
+               names_to = "temas", values_to = "count") %>%  # con una columna (count) que indica si está presente el tema en ese token-tuit
+  filter(count==1) # nos quedamos sólo con los tokens asignados a un tema
+
+# inspeccionando resultados / primera aproximacion
+
+# cantidad de coincidencias por tuit
+coincidencias_tweets <- temas_palabras_match_tokens_long %>% 
+  group_by(tweet_id) %>% 
+  dplyr::summarise(cantidad_coincidencias = sum(as.integer(count))) %>% 
+  left_join(joined_candidatos)
+
+# cantidad de coincidencias por tema por tuit
+ncoincidencias_tema_tweets <- left_join(joined_candidatos %>% 
+                                          filter(Campaña == 1 ),
+                                        temas_palabras_match_tokens_long %>% 
+                                          dplyr::count(tweet_id, temas) 
+                                        ) %>% 
+  select(tweet_id, screen_name, text, temas, n) %>% 
+  dplyr::rename(coincidencias_tema_tuit = "n")
+
+# ejemplo: tuit con muchas coincidencias sobre un mismo tema
+ejemplo1 <- ncoincidencias_tema_tweets %>%  
+  arrange(desc(coincidencias_tema_tuit)) %>% 
+  head(1)
+
+print(ejemplo1)
+
+# cantidad de temas por tuit
+ntemas_tweets <- temas_palabras_match_tokens_long %>% 
+  dplyr::count(tweet_id, temas) %>% 
+  dplyr::mutate( tweet_id = as.factor(tweet_id))
+
+# unimos con base de datos
+cantidad_temas_tuit <- left_join(joined_candidatos %>% 
+                                   filter(Campaña == 1 ),
+                                 fct_count(ntemas_tweets$tweet_id) %>% 
+                                   dplyr::rename(tweet_id = "f")) %>% 
+  select(tweet_id, screen_name, text, n) %>%
+  mutate_if(is.numeric, funs(ifelse(is.na(.), 0, .))) %>% 
+  dplyr::rename(cantidad_temas_tuit = "n")
+
+
+# ejemplo tuit con muchos temas
+
+ejemplo2 <- cantidad_temas_tuit  %>%  
+  arrange(desc(cantidad_temas_tuit)) %>% 
+  head(1)
+
+print(ejemplo2)
+
+# histograma descriptivo / cantidad de temas por tuit
+
+plot_cantidad_temas_tuit <- cantidad_temas_tuit %>% 
+  ggplot(aes(cantidad_temas_tuit)) +
+  geom_bar()
+
+# tuits con dos temas
+
+tuits_con_dos_temas <- ncoincidencias_tema_tweets %>% 
+  left_join(cantidad_temas_tuit) %>% 
+  filter(cantidad_temas_tuit == 2 ) %>% 
+  group_by(tweet_id) %>% 
+  summarise( tema1 = max(temas),
+             tema2 = min(temas)) 
+
+temas_juntos <- tuits_con_dos_temas %>%  
+  dplyr::count(tema1, tema2) %>% 
+  arrange(desc(n))
+
+head(temas_juntos, 10)
+
+tuits_con_unico_tema <- ncoincidencias_tema_tweets %>% 
+  left_join(cantidad_temas_tuit) %>% 
+  filter(cantidad_temas_tuit == 1 )
+
+temas_en_tuits_con_unico_tema <- fct_count(tuits_con_unico_tema$temas)
+
+
+# temas mas populares
+
+temas_populares <- fct_count(ncoincidencias_tema_tweets$temas)
+# hacer tabla
+# se ve tambien tuits sin clasificar
+
+# temas preferidos por candidato
+
+temas_candidatos <- ncoincidencias_tema_tweets %>% 
+  dplyr::count(screen_name, temas) %>% 
+  na.omit(n)
+
+plot_temas_candidatos <- temas_candidatos %>% 
+  ggplot(aes(screen_name, temas, size= n, colour = screen_name)) +
+           geom_count() 
+
+
+# probar con cosito con flujos 
+# hacer un facet wrap por distrito / cargo etc 
 
 #####
 # Topic modeling ######
