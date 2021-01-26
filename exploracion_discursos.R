@@ -22,6 +22,7 @@ library(igraph) # para grafos
 library(pander)
 library(tidyverse)
 library(ggwordcloud)
+library(ggforce) # para graficos de sets paralelos
 
 #propias
 
@@ -135,6 +136,14 @@ linea_rts <- ggplot(rts_dia,
 
 #####
 # Cantidad de palabras ######
+
+# no se si tuve en cuenta hasta ahora: cantidad de tuits
+# copio cuenta que hice para mas adelante
+
+cantidad_tuits_candidato <- joined_candidatos %>% 
+  subset( Campaña == 1 ) %>%  
+  dplyr::count(screen_name) %>% 
+  rename(tuits_emitidos_totales = "n")
 
 # Gobernadores
 
@@ -686,17 +695,128 @@ temas_populares <- fct_count(ncoincidencias_tema_tweets$temas)
 
 # temas preferidos por candidato
 
-temas_candidatos <- ncoincidencias_tema_tweets %>% 
+# cuenta absoluta
+# ¿cuantos tuits sobre x tema emitio i candidato?
+
+temas_candidatos_absolutos <- ncoincidencias_tema_tweets %>% 
   dplyr::count(screen_name, temas) %>% 
-  na.omit(n)
+  na.omit(n) %>% 
+  left_join(datos_base)
 
-plot_temas_candidatos <- temas_candidatos %>% 
-  ggplot(aes(screen_name, temas, size= n, colour = screen_name)) +
-           geom_count() 
+plot_temas_candidatos_absolutos <- temas_candidatos_absolutos %>% 
+  dplyr::mutate(screen_name = as.factor(screen_name)) %>% 
+  ggplot(aes(x = fct_reorder(screen_name, Cargo), y = temas, size= n, colour = Distrito)) +
+           geom_count() + 
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90),
+        legend.position = "none")
+
+# cuenta relativa
+# ¿qué proporción de los tuits emitidos por i candidato fueron a x tema?
+
+# eventualmente podemos hacer esta cuenta más atrás-
+# calculamos cantidad de tuits emitidos por candidato
+cantidad_tuits_candidato <- joined_candidatos %>% 
+  subset( Campaña == 1 ) %>%  
+  dplyr::count(screen_name) %>% 
+  rename(tuits_emitidos_totales = "n")
+
+# unimos esta base para que la que consigna los temas por candidatos 
+# tenga una columna con el total de tuits emitidos
+
+temas_candidatos_relativos <- temas_candidatos_absolutos %>%
+  left_join(cantidad_tuits_candidato) %>% 
+  dplyr::mutate(n_relativo = n/tuits_emitidos_totales*100)
+
+plot_temas_candidatos_relativos <- temas_candidatos_relativos %>% 
+  ggplot(aes(x = fct_reorder(screen_name, Cargo), y = n_relativo, fill = temas)) + 
+  geom_col(position = "stack") + 
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90))
+
+# hora de racionalizar temas 
+# lo hacemos manualmente
+# para eso volvemos a la primer base de datos long
+
+temas_populares
+
+# no funco por algun motivo
+
+temas_palabras_match_racionalizados_long <- temas_palabras_match_tokens_long %>%
+  dplyr:: mutate( temas = 
+  forcats::fct_collapse(temas,
+               economía = c("	inflación", "deuda", "tc"),
+               producción = c("industria", "agropecuario", "inversion", "competitividad"),
+               infraestructura = c("obra_pública", "caminos", "alumbrado", "transporte", "telecomunicaciones"),
+               servicios = c("servicios_agua", "higiene"),
+               derechos = c("ddhh", "género"),
+               esparcimiento = c("turismo", "cultura", "deporte"),
+               tributos = c("coparticipación", "impuestos"),
+               naturaleza = c("catástrofes_naturales", "ambiente"),
+               seguridad = c("narcotráfico", "seguridad"),
+               justicia = c("justicia", "corrupción"),
+               social = c("pobreza", "desocupación", "jubilaciones"),
+               política = c("electoral", "gobierno_abierto"),
+               rrii = c("rrii"),
+               vivienda = c("vivienda")
+               ) )
 
 
-# probar con cosito con flujos 
-# hacer un facet wrap por distrito / cargo etc 
+temas_candidatos_racionalizados <- left_join(joined_candidatos %>% 
+                                                filter(Campaña == 1 ),
+                                              temas_palabras_match_racionalizados_long  %>% 
+                                                dplyr::count(tweet_id, temas)  ) %>% # para ver cantidad de temas por tuit
+  select(tweet_id, screen_name, text, temas, n) %>% 
+  dplyr::rename(coincidencias_tema_tuit = "n") %>% 
+  dplyr::count(screen_name, temas) %>% # para ver temas por candidatos
+  na.omit(n) %>% 
+  dplyr::rename(veces_tema_candidato = "n") %>% 
+  left_join(datos_base) %>% 
+  left_join(cantidad_tuits_candidato) %>%  # para agregar medida relativa de importancia del tema/candidato
+  dplyr::mutate(n_relativo = veces_tema_candidato/tuits_emitidos_totales*100)
+
+# control: entiendo que estas sumas deberian coincidir y sin embargo no es asi
+sum(temas_candidatos_racionalizados$veces_tema_candidato)
+
+sum(temas_candidatos_absolutos$n)
+
+# ploteo de estos temas racionalizados
+
+plot_temas_candidatos_racionalizados_absolutos <- temas_candidatos_racionalizados %>% 
+  dplyr::mutate(screen_name = as.factor(screen_name)) %>% 
+  ggplot(aes(x = fct_reorder(screen_name, Cargo), y = temas, size = veces_tema_candidato, colour = Distrito)) +
+  geom_count() + 
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90),
+        legend.position = "none")
+
+
+plot_temas_candidatos_racionalizados_relativos <- temas_candidatos_racionalizados %>% 
+  ggplot(aes(x = fct_reorder(screen_name, Cargo), y = n_relativo, fill = temas)) + 
+  geom_col(position = "stack") + 
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90))
+# por ahi se podria rellenar temas sin clasificar
+
+
+# y de hacer matches por palabras
+# hacemos para tema vivienda
+
+matches_vivienda <- temas_palabras_match_tokens_long %>% 
+  subset(temas == "vivienda") %>% 
+  dplyr::count(screen_name, tokens)
+
+matches_vivienda_paralell <- matches_vivienda  %>% 
+  gather_set_data(1:2)
+
+plot_matches_vivienda <- ggplot(matches_vivienda_paralell,
+                   aes(x, id = id, split = y, value = n)) + #  INICIA GRAFICO
+  geom_parallel_sets(aes(fill = screen_name), alpha = 0.7, axis.width = 0.1, show.legend = FALSE) +
+  theme_minimal() +
+  geom_parallel_sets_axes(axis.width = 0.1, color = "black", fill = "gray20") +
+  geom_parallel_sets_labels(colour = 'white', angle= 0) +
+  theme_no_axes() +
+  theme(panel.background = element_rect(fill = "gray20"))
 
 #####
 # Topic modeling ######
@@ -706,7 +826,7 @@ plot_temas_candidatos <- temas_candidatos %>%
 # SEGUIR PROBANDO
 # POR ALGUN MOTIVO MUCHOS NA/NA
 
-#PROBANDO: CON 10 TEMAS
+#PROBANDO: CON 10 TEMAS 
 # preparando datos
 candidatos_tokens_dtm <- joined_candidatos %>% 
   tokenizarTextoTuits(tipo_token = "ngrams") %>% 

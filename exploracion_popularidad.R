@@ -43,7 +43,7 @@ gobernadores_popu <- joined_gobernadores %>%
   subset( Campaña == 1 ) %>% 
   select(created_at, screen_name, rts,fav_count, followers_count, friends_count ) %>% 
   group_by(screen_name) %>% 
-  summarise(rts_obtenidos_totales = sum(rts),
+  dplyr::summarise(rts_obtenidos_totales = sum(rts),
             favs_obtenidos_totales = sum(fav_count),
             cantidad_emitidos_totales = n(),
             rts_obtenidos_promedio = rts_obtenidos_totales/cantidad_emitidos_totales,
@@ -64,7 +64,7 @@ presid_popu <- joined_presid %>%
   subset( Campaña == 1 ) %>% 
   select(created_at, screen_name, rts,fav_count, followers_count, friends_count ) %>% 
   group_by(screen_name) %>% 
-  summarise(rts_obtenidos_totales = sum(rts),
+  dplyr::summarise(rts_obtenidos_totales = sum(rts),
             favs_obtenidos_totales = sum(fav_count),
             cantidad_emitidos_totales = n(),
             rts_obtenidos_promedio = rts_obtenidos_totales/cantidad_emitidos_totales,
