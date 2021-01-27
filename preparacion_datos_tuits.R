@@ -20,13 +20,13 @@ source("Modules/tuitsCandidatos.R", encoding = "UTF-8")
 #####
 #IMPORTACION DE DATOS #####
 
-traerDatos <- function(tipo_dato){
+traerDatosTuits <- function(tipo_dato){
   
  # función que trae los datos necesarios.
  # opciones: candidatos a presidente, a gobernador, todos juntos, datos de base
  # "presid", "gob", "tot", "base", respectivamente
   
-  if(tipo_dato== "base") {
+  if(tipo_dato == "base") {
  # ids
 
   datos_base <- read_xlsx("Data/datos_base.xlsx")
@@ -112,8 +112,8 @@ traerDatos <- function(tipo_dato){
   else if (tipo_dato=="tot") {
     
   # trae bases separadas
-     joined_presid <- traerDatos("presid")
-     joined_gobernadores <- traerDatos("gob")
+     joined_presid <- traerDatosTuits("presid")
+     joined_gobernadores <- traerDatosTuits("gob")
   # unir las dos de manera prolija
   
   mismatched_cols <- compare_df_cols(joined_presid, 

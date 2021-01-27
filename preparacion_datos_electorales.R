@@ -23,16 +23,17 @@ traerDatosElectorales <- function(tipo_dato){
   # opciones: candidatos a presidente, a gobernador, todos juntos
   # "presid", "gob", "tot" respectivamente
   
+  
+  # ids
+  
+  datos_base <- read_xlsx("Data/datos_base.xlsx")
+  
   if(tipo_dato == "presid") {
     
     #####
     #PRESIDENCIALES
     #####
-    
-    # ids
-    
-    datos_base <- read_xlsx("Data/datos_base.xlsx")
-    
+
     # urls a importar 
     
     url_presid <- "https://es.wikipedia.org/wiki/Elecciones_presidenciales_de_Argentina_de_2019"
@@ -143,11 +144,11 @@ traerDatosElectorales <- function(tipo_dato){
 
     
     
-    devolver_data <- votos_gobernadore
+    devolver_data <- votos_gobernadores
     
   }   
     
-  if(tipo_dato== "gob") {
+  if(tipo_dato == "tot") {
     
     # llamamos a ambas bases por separado
     
@@ -158,7 +159,7 @@ traerDatosElectorales <- function(tipo_dato){
     votos_totales <- rbind(votos_presid,
                            votos_gobernadores)
 
-    devolver_data <- votos_gobernadore
+    devolver_data <- votos_totales
     
   } 
   

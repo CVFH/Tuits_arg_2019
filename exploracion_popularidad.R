@@ -27,11 +27,16 @@ source("Modules/funcionesGraficos.R", encoding = "UTF-8")
 # nos importan dataframes con tuits de candidatos: joined_gobernadores y joined_presid 
 
 source("preparacion_datos_tuits.R", encoding = "UTF-8")
+joined_presid <- traerDatosTuits("presid")
+joined_gobernadores <- traerDatosTuits("gob")
+joined_candidatos <- traerDatosTuits("tot")
 
 # Datos electorales 
 # nos importan tablas con votos obtenidos por cada candidato: votos_gobernadores y votos_presid
 
 source("preparacion_datos_electorales.R", encoding = "UTF-8")
+votos_gobernadores <- traerDatosElectorales("gob")
+votos_presid <- traerDatosElectorales("presid")
 
 #####
 # UNIENDO Y TRABAJANDO DATOS / TUTIS / ELECTORALES

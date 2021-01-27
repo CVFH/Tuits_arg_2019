@@ -42,9 +42,9 @@ datos_base <- read_xlsx("Data/datos_base.xlsx")
 # nos importan dataframes con tuits de candidatos: joined_gobernadores y joined_presid 
 
 source("preparacion_datos_tuits.R", encoding = "UTF-8")
-joined_presid <- traerDatos("presid")
-joined_gobernadores <- traerDatos("gob")
-joined_candidatos <- traerDatos("tot")
+joined_presid <- traerDatosTuits("presid")
+joined_gobernadores <- traerDatosTuits("gob")
+joined_candidatos <- traerDatosTuits("tot")
 
 
 # TRANSFORMACIONES DE LOS DATOS 
@@ -97,6 +97,8 @@ linea_fecha <- ggplot(joined_candidatos %>%
 # pendiente: ver si la baja pos elecciones corresponde al perdedor (ranking. buscar segundos)
 
 source("preparacion_datos_electorales.R", encoding = "UTF-8")
+votos_totales <- traerDatosElectorales("tot")
+
 #gobernadores
 linea_ranking_gobernadores <- joined_candidatos %>% 
   left_join(votos_totales) %>% 
