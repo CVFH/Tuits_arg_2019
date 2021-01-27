@@ -11,8 +11,7 @@ library(lubridate)
 library(readxl)
 library(ggplot2)
 library(patchwork) # para unir graficos
-require(tidytext) # para manipular texto
-require(ggthemes)
+library(ggthemes)
 library(wordcloud2) # para nubes de palabras
 library(reshape2)
 library(tm) # para DocumentTermMatrixs

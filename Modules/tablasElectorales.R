@@ -9,8 +9,8 @@
 #apertura de liberarias
 ##### 
 
-require(tidyverse)
-require(rvest) # extraer datos de html
+library(tidyverse)
+library(rvest) # extraer datos de html
 
 # FUNCIONES
 
@@ -20,6 +20,11 @@ require(rvest) # extraer datos de html
 #de base
 
 arbolTablas <- function(url){
+  
+  # recibe un url, 
+  # lee el código html 
+  # y se queda con los nodos "tabla"
+  
   df_url_tables <-read_html(url) %>% 
     html_nodes("table")
   return(df_url_tables)
@@ -27,8 +32,8 @@ arbolTablas <- function(url){
 
 extraerTabla <- function(df_url_tables, nodo){
   
-  ##extrae la tabla de interés
-  ##y hace los primeros pasos de limpieza
+  # extrae la tabla de interés
+  # y hace los primeros pasos de limpieza
   
   extracto_tabla <- html_table(df_url_tables[[nodo]], 
                                fill=TRUE, 
@@ -106,6 +111,7 @@ limpiezaTabla <- function(extracto_tabla_renombrada){
 }
 
 agregarVotosGobernador <- function(tabla_limpia){ 
+  
   #calcula los votos agregados de la fórmula
   #para tablas que reportan de manera separada cada lista
   

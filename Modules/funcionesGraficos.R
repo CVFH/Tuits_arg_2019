@@ -1,11 +1,13 @@
 ## funcionesGraficos.R
 ## este modulo contiene funciones que serán de utilidad a la hora de graficar
 
+library(tidyverse)
+library(ggplot2)
 
 plotPoint <- function(df, aes){
   
-  #recibe un df, y un conjunto de parametros aes
-  #devuelve un grafico de puntos dispersos
+  # recibe un df, y un conjunto de parametros aes
+  # devuelve un grafico de puntos dispersos
   
   plotPoint <- ggplot(df, 
                       aes) +
@@ -18,10 +20,10 @@ plotPoint <- function(df, aes){
   
 plotPointText <-function(df, aes1, aes2){
   
-  #recibe un df, y un conjunto de parametros aes
-  #aes1 = parametros para el point
-  #aes2 = parametros para text
-  #devuelve un grafico de puntos dispersos + sus etiquetas
+  # recibe un df, y un conjunto de parametros aes
+  # aes1 = parametros para el point
+  # aes2 = parametros para text
+  # devuelve un grafico de puntos dispersos + sus etiquetas
   
   plotPointText <- ggplot(df, 
                           aes1) +

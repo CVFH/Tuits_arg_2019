@@ -189,12 +189,6 @@ candidatos_rts_emitidos <- ggplot(candidatos_popu_ranking,
 
 
 #####
-# MAPAS
-#####
-
-
-
-
 #####
 # Patchworks (pendiente trabajar)
 #####

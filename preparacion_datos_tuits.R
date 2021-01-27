@@ -9,10 +9,9 @@
 
 #paquetes
 
-require(tidyverse)
-require(janitor)
-require(readxl)
-require(rvest) # extraer datos de html
+library(tidyverse)
+library(janitor)
+library(readxl)
 
 #propias
 
