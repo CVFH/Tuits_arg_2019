@@ -8,9 +8,7 @@
 
 require(tidyverse)
 require(readxl)
-require(rvest) # extraer datos de html
 require(ggplot2) # para graficar
-require(polAr)
 library(patchwork) # para unir graficos
 
 

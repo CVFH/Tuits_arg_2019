@@ -12,6 +12,7 @@ library(rvest) # extraer datos de html
 library(readxl) # extraer datos de excel
 
 #propias
+#source("Modules/tablasElectorales.R", encoding = "UTF-8")
 source("https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Modules/tablasElectorales.R", encoding = "UTF-8")
 
 #####
@@ -27,10 +28,7 @@ traerDatosElectorales <- function(tipo_dato){
   
   # ids
   
-  temp = tempfile(fileext = ".xlsx")
-  dataURL <- "https://github.com/CVFH/Tuits_arg_2019/raw/master/Data/datos_base.xlsx"
-  download.file(dataURL, destfile=temp, mode='wb')
-  datos_base <- readxl::read_excel(temp)
+  datos_base <- read_xlsx("Data/datos_base.xlsx")
   
   if(tipo_dato == "presid") {
     
