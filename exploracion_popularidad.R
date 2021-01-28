@@ -190,7 +190,6 @@ candidatos_rts_emitidos <- ggplot(candidatos_popu_ranking,
    geom_text(aes(label=screen_name),hjust=0, vjust=0) +
   theme_minimal()
 
-
 #####
 #####
 # Patchworks (pendiente trabajar)
@@ -209,7 +208,7 @@ rtspromedio_porcentaje <- gobernadores_rtspromedio_porcentaje | presid_rtspromed
     title = 'Relación entre cantidad de Rts Promedio y Porcentaje de votos obtenido',
     caption = "Fuente: elaboración propia")
 
-desempeño_totcandidatos <- candidatos_rtspromedio_votos | candidatos_rts_votos  +
+desempeño_totcandidatos <- (candidatos_rtspromedio_votos | candidatos_rts_votos )  +
   plot_annotation(
     title = 'Desempeño de los candidatos tomados en conjunto',
     caption = "Fuente: elaboración propia")

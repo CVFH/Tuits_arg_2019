@@ -42,8 +42,8 @@ formatPlot <- function(plot, plottitle="", plotsubtitle="", xlabel="", ylabel=""
          subtitle = plotsubtitle,
          x = xlabel,
         y = ylabel) +
-    theme(legend.position = "none") +
-    theme_minimal()
+    theme_minimal() +
+    theme(legend.position = "none") 
   
   return(formatted_plot)
   
