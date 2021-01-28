@@ -163,7 +163,7 @@ candidatos_favs_votos <- ggplot(candidatos_popu_ranking,
                                     Votos,
                                     colour= Distrito)) +
   geom_point(size = 2,alpha = 0.8) +
-  # geom_text(aes(label=screen_name),hjust=0, vjust=0) +
+  #geom_text(aes(label=screen_name),hjust=0, vjust=0) +
   theme_minimal()
 
 candidatos_emitidos_votos <- ggplot(candidatos_popu_ranking, 
@@ -204,3 +204,12 @@ rtspromedio_porcentaje + plot_annotation(
   caption = "Fuente: elaboración propia")
 
 
+rtspromedio_porcentaje <- gobernadores_rtspromedio_porcentaje | presid_rtspromedio_porcentaje  + 
+  plot_annotation(
+    title = 'Relación entre cantidad de Rts Promedio y Porcentaje de votos obtenido',
+    caption = "Fuente: elaboración propia")
+
+desempeño_totcandidatos <- candidatos_rtspromedio_votos | candidatos_rts_votos  +
+  plot_annotation(
+    title = 'Desempeño de los candidatos tomados en conjunto',
+    caption = "Fuente: elaboración propia")
