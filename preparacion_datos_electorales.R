@@ -12,8 +12,8 @@ library(rvest) # extraer datos de html
 library(readxl) # extraer datos de excel
 
 #propias
-#source("Modules/tablasElectorales.R", encoding = "UTF-8")
-source("https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Modules/tablasElectorales.R")
+source("Modules/tablasElectorales.R", encoding = "UTF-8")
+#source("https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Modules/tablasElectorales.R")
 
 #####
 # EXTRACCION Y TRANSFORMACION / DATOS ELECTORALES
