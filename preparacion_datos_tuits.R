@@ -11,7 +11,7 @@
 
 library(tidyverse)
 library(janitor)
-library(readxl)
+#library(readxl)
 
 #propias
 
@@ -29,13 +29,13 @@ traerDatosTuits <- function(tipo_dato){
   if(tipo_dato == "base") {
  # ids
 
-    temp = tempfile(fileext = ".xlsx")
-    dataURL <- "https://github.com/CVFH/Tuits_arg_2019/raw/master/Data/datos_base.xlsx"
-    download.file(dataURL, destfile=temp, mode='wb')
-    datos_base <- readxl::read_excel(temp)
+    # temp = tempfile(fileext = ".xlsx")
+    # dataURL <- "https://github.com/CVFH/Tuits_arg_2019/raw/master/Data/datos_base.xlsx"
+    # download.file(dataURL, destfile=temp, mode='wb')
+    # datos_base <- readxl::read_excel(temp)
+    # datos_base <- read_xlsx(path = "https://github.com/CVFH/Tuits_arg_2019/raw/master/Data/datos_base.xlsx")
     
-  #datos_base <- read_xlsx(path = "https://github.com/CVFH/Tuits_arg_2019/raw/master/Data/datos_base.xlsx")
-  
+    datos_base <- read.csv("https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/datos_base.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
     devolver_data <- datos_base
  }
 
@@ -99,12 +99,13 @@ traerDatosTuits <- function(tipo_dato){
   # aquí tenemos un archivo -xlsx y los demás .csv. 
   # resultó más sencillo descargarlos independientemente y luego unirlos
   
-    temp = tempfile(fileext = ".xlsx")
-    dataURL <- "https://github.com/CVFH/Tuits_arg_2019/raw/master/Data/alferdez.xlsx"
-    download.file(dataURL, destfile=temp, mode='wb')
-    presid1 <- readxl::read_excel(temp)
+    # temp = tempfile(fileext = ".xlsx")
+    # dataURL <- "https://github.com/CVFH/Tuits_arg_2019/raw/master/Data/alferdez.xlsx"
+    # download.file(dataURL, destfile=temp, mode='wb')
+    # presid1 <- readxl::read_excel(temp)
+    # presid1 <- read_xlsx("Data/alferdez.xlsx")
     
-  #presid1 <- read_xlsx("Data/alferdez.xlsx")
+  presid1 <- read.csv("https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/alferdez.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
   presid2 <- read.csv("https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/mauriciomacri.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
   presid3 <- read.csv("https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/RLavagna.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
   presid4 <- read.csv("https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/NicolasdelCano.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
