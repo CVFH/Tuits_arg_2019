@@ -8,9 +8,11 @@
 
 #apertura de liberarias
 ##### 
-
+tuits_alferdez <- rtweet::get_timeline("alferdez")
+write.csv(tuits_alferdez, "tuits_alferdez.csv")
 library(tidyverse)
 library(rvest) # extraer datos de html
+library(readxl)
 
 # FUNCIONES
 
