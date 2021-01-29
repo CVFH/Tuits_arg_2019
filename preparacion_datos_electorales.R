@@ -159,7 +159,7 @@ traerDatosElectorales <- function(tipo_dato){
     # llamamos a ambas bases por separado
     
     votos_presid <- traerDatosElectorales("presid")
-    votos_presid <- traerDatosElectorales("gob")
+    votos_gobernadores <- traerDatosElectorales("gob")
     # unimos ambas bases
 
     votos_totales <- rbind(votos_presid,

@@ -26,12 +26,25 @@ traerDatosTuits <- function(tipo_dato){
  # opciones: candidatos a presidente, a gobernador, todos juntos, datos de base
  # "presid", "gob", "tot", "base", respectivamente
   
+  # definimos previamente un vector con las columnas que retendremos de los dataframes de tuits
+  
+  select_columnas <- c("created_at", 
+                       "text", 
+                       "rts", "fav_count", 
+                       "tweet_id", 
+                       "screen_name", "user_id", "description", 
+                       "location", 
+                       "mention_screen_names", 
+                       "in_reply_to_screen_name")
+  
   if(tipo_dato == "base") {
- # ids
+    
+    # ids
 
     datos_base <- read.csv("https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/datos_base.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
     devolver_data <- datos_base
- }
+ 
+    }
 
   else if (tipo_dato == "gob") {
     
@@ -76,14 +89,7 @@ traerDatosTuits <- function(tipo_dato){
     determinarTuitsCampaña(fecha_paso, fecha_grales)
   
   joined_gobernadores <- rbind(simultaneas_df, desdobladas_df)  %>% 
-    select("created_at", 
-           "text", 
-           "rts", "fav_count", 
-           "tweet_id", 
-           "screen_name", "user_id", "description", 
-           "location", 
-           "mention_screen_names", 
-           "in_reply_to_screen_name")
+    select(select_columnas)
   
   devolver_data <- joined_gobernadores
  
@@ -112,25 +118,11 @@ traerDatosTuits <- function(tipo_dato){
   joined_presid <- presid_filenames %>% 
     map_dfr(read.csv, encoding = "UTF-8", stringsAsFactors = FALSE ) %>% 
     determinarTuitsCampaña(fecha_paso, fecha_grales) %>% 
-    select("created_at", 
-           "text", 
-           "rts", "fav_count", 
-           "tweet_id", 
-           "screen_name", "user_id", "description", 
-           "location", 
-           "mention_screen_names", 
-           "in_reply_to_screen_name")
+    select(select_columnas)
 
   presid1 <- read.csv(presid1, encoding = "UTF-8", stringsAsFactors = FALSE) %>% 
     determinarTuitsCampaña(fecha_paso, fecha_grales) %>% 
-    select("created_at", 
-           "text", 
-           "rts", "fav_count", 
-           "tweet_id", 
-           "screen_name", "user_id", "description", 
-           "location", 
-           "mention_screen_names", 
-           "in_reply_to_screen_name")
+    select(select_columnas)
   
   joined_presid <- joined_presid %>% rbind(presid1)
   

@@ -86,13 +86,28 @@ candidatos_tokentweets <- rbind(joined_presid_tokentweets,
 #####
 # Lineas de tiempo ######
 
+fecha_elecciones_desdoblada <-as.Date("2019-06-16")
+fecha_campaña_desdoblada <-as.Date("2019-04-28")
+
+fecha_paso <- as.Date("2019-08-11")
+fecha_grales <- as.Date("2019-10-27")
+
 # este grafico es hermoso
 linea_fecha <- ggplot(joined_candidatos %>%  
                          filter(year(created_at) == 2019 ) %>%  
                          arrange(tipo_fecha), 
                        aes(x = date(created_at), fill = tipo_fecha)) +
   geom_histogram(position = "identity", bins = 24, alpha = 0.5)  +
-  facet_wrap(~Cargo, ncol = 2)
+  facet_wrap(~Cargo, ncol = 2) +
+  theme_minimal() + 
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 90)) + 
+  labs(title = "Evolución de la emisión de tuits en el tiempo",
+         subtitle = "durante el 2019",
+         x = "cantidad de tuits emitidos",
+         y = "fecha",
+         fill = "")
+# pendiente. corregir fechas
 
 # pendiente: ver si la baja pos elecciones corresponde al perdedor (ranking. buscar segundos)
 
