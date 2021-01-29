@@ -22,6 +22,7 @@ library(pander)
 library(tidyverse)
 library(ggwordcloud)
 library(ggforce) # para graficos de sets paralelos
+library(twittrmd) # para incluir tuits en Rmd ?
 
 #propias
 
@@ -271,6 +272,7 @@ plot_promediopalabras_cantidadtuits <- plot_promediopalabras_cantidadtuits %>%
              plotcaption = "Fuente: elaboración propia") 
 
 
+
 #####
 # Nubes de palabras #####
 
@@ -310,6 +312,7 @@ wordcloud::comparison.cloud(matriz_cargos,
 # tdf_idf / gobernadores / token = words
 
 joined_gobernadores_tokenizadas_tfidf <- joined_gobernadores_tokenizadas %>%
+  limpiarTokens(palabras_web = TRUE, mentions = TRUE, hashtags = TRUE) %>% 
   dplyr::count(screen_name, tokens, sort = TRUE) %>% 
   limpiarTokens(palabras_web = TRUE) %>%  
   bind_tf_idf(tokens, screen_name, n)
@@ -372,7 +375,7 @@ plot_gobs_tfidf_bigramas <- ggplot(sliced_gobs_tfidf_bigramas,
 
 
 joined_gobernadores_tokentweets_tfidf <- joined_gobernadores_tokentweets %>%
- limpiarTokens(palabras_web = TRUE) %>%  
+  limpiarTokens(palabras_web = TRUE, mentions = TRUE, hashtags = TRUE) %>%  
   dplyr::count(screen_name, tokens, sort = TRUE) %>% 
   bind_tf_idf(tokens, screen_name, n)
 
@@ -404,7 +407,7 @@ plot_gobs_tfidf_tokentweet <- ggplot(sliced_gobs_tfidf_tokentweet ,
 # tdf_idf / presidente / tokens = words
 
 joined_presid_tokenizadas_tfidf <- joined_presid_tokenizadas %>%
-  limpiarTokens(palabras_web = TRUE) %>% 
+  limpiarTokens(palabras_web = TRUE, mentions = TRUE, hashtags = TRUE) %>%  
   dplyr::count(screen_name, tokens, sort = TRUE) %>% 
   bind_tf_idf(tokens, screen_name, n) 
 
@@ -419,16 +422,20 @@ plot_presid_tfidf <- ggplot(sliced_presid_tfidf,
   geom_col(show.legend = FALSE) +
   labs(x = NULL, y = "tf-idf") +
   facet_wrap(~screen_name, ncol = 2, scales = "free") +
+  theme_clean() +
   coord_flip() +
-  scale_x_reordered()+ 
-  theme(strip.text = element_text(size=8),
-        axis.text.y = element_text(size = 7, hjust = 0.8))
+  scale_x_reordered() + 
+  theme(strip.text = element_text(size=9),
+        axis.text.y = element_text(size = 8, hjust = 0.8),
+        axis.text.x = element_blank()) +
+  labs(title = "Términos más 'propios' de cada candidato",
+       subtitle = "a presidente")
 
 
 # tdf_idf / presidente / tokens = tweets
 
 joined_presid_tokentweets_tfidf <- joined_presid_tokentweets %>%
-  limpiarTokens(palabras_web = TRUE) %>% 
+  limpiarTokens(palabras_web = TRUE, mentions = TRUE, hashtags = TRUE) %>% 
   dplyr::count(screen_name, tokens, sort = TRUE) %>% 
   bind_tf_idf(tokens, screen_name, n)
 
@@ -486,7 +493,7 @@ plot_presid_tfidf_bigramas <- ggplot(sliced_presid_tfidf_bigramas,
 # y una de los candidatos para ver
 
 joined_candidatos_tokenizadas_tfidf <- candidatos_tokenizadas %>%
-  limpiarTokens(palabras_web = TRUE) %>% 
+  limpiarTokens(palabras_web = TRUE, mentions = TRUE, hashtags = TRUE) %>% 
   dplyr::count(screen_name, tokens, sort = TRUE) %>% 
   bind_tf_idf(tokens, screen_name, n) 
 
