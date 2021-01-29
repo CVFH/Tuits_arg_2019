@@ -28,8 +28,7 @@ plotPointText <-function(df, aes1, aes2){
   plotPointText <- ggplot(df, 
                           aes1) +
     geom_point(size = 2,alpha = 0.8) +
-    geom_text(aes2,hjust=0, vjust=0, size=4, colour="black")
-    theme_minimal()
+    geom_text(aes2,hjust=0, vjust=0, size=4, colour="black") 
 
   return(plotPointText)
 }
@@ -37,12 +36,12 @@ plotPointText <-function(df, aes1, aes2){
 formatPlot <- function(plot, plottitle="", plotsubtitle="", xlabel="", ylabel="", plotcaption=""){
   
   formatted_plot <- plot +
+    theme_clean()
     labs(title = plottitle, 
          caption = plotcaption,
          subtitle = plotsubtitle,
          x = xlabel,
         y = ylabel) +
-    theme_minimal() +
     theme(legend.position = "none") 
   
   return(formatted_plot)

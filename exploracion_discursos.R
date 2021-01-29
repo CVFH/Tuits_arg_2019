@@ -159,7 +159,7 @@ rts_dia <- joined_candidatos %>%
 linea_rts <- ggplot(rts_dia, 
                        aes(x = dia, y = rts_dia, fill = Cargo)) +
   geom_col(alpha = 0.5) + 
-    theme_base() +
+      theme_clean() +
   labs(title= "Rts recibidos por día",
        subtitle= "durante 2019",
        x = "fecha",
@@ -176,7 +176,7 @@ linea_rts <- ggplot(rts_dia,
 cantidad_tuits_candidato <- joined_candidatos %>% 
   subset( Campaña == 1 ) %>%  
   dplyr::count(screen_name) %>% 
-  rename(tuits_emitidos_totales = "n")
+  dplyr::rename(tuits_emitidos_totales = "n")
 
 # Gobernadores
 
@@ -195,18 +195,20 @@ gobernadores_sintesis2 <-joined_gobernadores %>%
 
 gobernadores_sintesis <- left_join(gobernadores_sintesis1, gobernadores_sintesis2)
 
-gobernadores_promediopalabras_cantidadtuits <- plotPointText(gobernadores_sintesis, 
+gobernadores_promediopalabras_cantidadtuits <- ggplot(gobernadores_sintesis, 
                                                              aes(cantidad_tuits_emitidos,
                                                                                    palabras_promedio_tuit,
                                                                                    colour=screen_name,
-                                                                 size= palabras_totales_emitidas), 
-                                                             aes(label= screen_name) ) +
-  geom_point()
+                                                                 size= palabras_totales_emitidas)) +
+                                                        geom_point(alpha = 0.8) +
+                                                        geom_text(aes(label= screen_name),hjust=0, vjust=0, size=4, colour="black") 
 
-
-gobernadores_promediopalabras_cantidadtuits_formateado <- formatPlot(gobernadores_promediopalabras_cantidadtuits,
-                                                                     "Elocuencia de los candiatos a gobernador",       
-                                                                     "Fuente: elaboración propia")  
+gobernadores_promediopalabras_cantidadtuits <- gobernadores_promediopalabras_cantidadtuits %>% 
+  formatPlot(plottitle = "Elocuencia de los candiatos a gobernador",
+             plotsubtitle = "durante la campaña de 2019",
+             xlabel = "Tuits emitidos",
+             ylabel = "Palabras promedio por tuit",
+            plotcaption = "Fuente: elaboración propia")  
 
 # Presid
 
@@ -233,6 +235,40 @@ presid_promediopalabras_cantidadtuits <-plotPointText(presid_sintesis,
 
 
 
+
+# todos juntos en facet
+
+candidatos_sintesis1 <- candidatos_tokenizadas %>% 
+  group_by(screen_name, tweet_id) %>% 
+  dplyr::mutate(cantidad_palabras_tuit =  dplyr::n()) %>% 
+  ungroup() %>% 
+  group_by(screen_name) %>% 
+  dplyr::summarise(palabras_promedio_tuit = mean(cantidad_palabras_tuit),
+                   palabras_totales_emitidas = dplyr::n())
+
+candidatos_sintesis2 <-joined_candidatos %>% 
+  subset(Campaña ==1) %>% 
+  group_by(screen_name) %>% 
+  dplyr::summarise(cantidad_tuits_emitidos = n())
+
+candidatos_sintesis <- left_join(candidatos_sintesis1, candidatos_sintesis2) %>% 
+  left_join(datos_base)
+
+plot_promediopalabras_cantidadtuits <- ggplot(candidatos_sintesis, 
+                                                      aes(cantidad_tuits_emitidos,
+                                                          palabras_promedio_tuit,
+                                                          colour=screen_name,
+                                                          size= palabras_totales_emitidas)) +
+  geom_point(alpha = 0.8) +
+  geom_text(aes(label= screen_name),hjust=0, vjust=0, size=4, colour="black") +
+  facet_wrap(~ Cargo)
+
+plot_promediopalabras_cantidadtuits <- plot_promediopalabras_cantidadtuits %>% 
+  formatPlot(plottitle = "Elocuencia de los candiatos a..",
+             plotsubtitle = "durante la campaña de 2019",
+             xlabel = "Tuits emitidos",
+             ylabel = "Palabras promedio por tuit",
+             plotcaption = "Fuente: elaboración propia") 
 
 
 #####
