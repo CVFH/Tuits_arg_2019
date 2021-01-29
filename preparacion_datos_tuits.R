@@ -75,7 +75,15 @@ traerDatosTuits <- function(tipo_dato){
     map_dfr(read.csv, encoding = "UTF-8" ) %>% 
     determinarTuitsCampaña(fecha_paso, fecha_grales)
   
-  joined_gobernadores <- rbind(simultaneas_df, desdobladas_df)
+  joined_gobernadores <- rbind(simultaneas_df, desdobladas_df)  %>% 
+    select("created_at", 
+           "text", 
+           "rts", "fav_count", 
+           "tweet_id", 
+           "screen_name", "user_id", "description", 
+           "location", 
+           "mention_screen_names", 
+           "in_reply_to_screen_name")
   
   devolver_data <- joined_gobernadores
  
@@ -99,11 +107,32 @@ traerDatosTuits <- function(tipo_dato){
   presid5 <- "https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/juanjomalvinas.csv"
   presid6 <- "https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/jlespert.csv"
   
-  presid_filenames <- c(presid1, presid2, presid3, presid4, presid5, presid6)
+  presid_filenames <- c(presid2, presid3, presid4, presid5, presid6)
   
   joined_presid <- presid_filenames %>% 
-    map_dfr(read.csv, encoding = "UTF-8" ) %>% 
-    determinarTuitsCampaña(fecha_paso, fecha_grales)
+    map_dfr(read.csv, encoding = "UTF-8", stringsAsFactors = FALSE ) %>% 
+    determinarTuitsCampaña(fecha_paso, fecha_grales) %>% 
+    select("created_at", 
+           "text", 
+           "rts", "fav_count", 
+           "tweet_id", 
+           "screen_name", "user_id", "description", 
+           "location", 
+           "mention_screen_names", 
+           "in_reply_to_screen_name")
+
+  presid1 <- read.csv(presid1, encoding = "UTF-8", stringsAsFactors = FALSE) %>% 
+    determinarTuitsCampaña(fecha_paso, fecha_grales) %>% 
+    select("created_at", 
+           "text", 
+           "rts", "fav_count", 
+           "tweet_id", 
+           "screen_name", "user_id", "description", 
+           "location", 
+           "mention_screen_names", 
+           "in_reply_to_screen_name")
+  
+  joined_presid <- joined_presid %>% rbind(presid1)
   
   devolver_data <- joined_presid
 
@@ -111,22 +140,12 @@ traerDatosTuits <- function(tipo_dato){
 
   else if (tipo_dato=="tot") {
     
-  # trae bases separadas
+  # traemos bases separadas
+    
      joined_presid <- traerDatosTuits("presid")
      joined_gobernadores <- traerDatosTuits("gob")
-  # unir las dos de manera prolija
-  
-  mismatched_cols <- compare_df_cols(joined_presid, 
-                                     joined_gobernadores, 
-                                     return =  "mismatch",
-                                     bind_method = "rbind")
-  
-  joined_presid <- joined_presid %>% 
-    mutate(created_at = as.factor(created_at),
-           created_at_user = as.factor(created_at_user))
-  joined_gobernadores <- joined_gobernadores %>% 
-    mutate( text = as.character(text),
-            tweet_id = as.numeric(tweet_id))
+     
+  # las unimos
       
   joined_candidatos <- rbind(joined_gobernadores,
                              joined_presid) 
