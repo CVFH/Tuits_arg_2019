@@ -3,6 +3,7 @@
 
 library(tidyverse)
 library(ggplot2)
+library(ggthemes)
 
 plotPoint <- function(df, aes){
   
@@ -36,7 +37,7 @@ plotPointText <-function(df, aes1, aes2){
 formatPlot <- function(plot, plottitle="", plotsubtitle="", xlabel="", ylabel="", plotcaption=""){
   
   formatted_plot <- plot +
-    theme_clean()
+    theme_clean() +
     labs(title = plottitle, 
          caption = plotcaption,
          subtitle = plotsubtitle,
