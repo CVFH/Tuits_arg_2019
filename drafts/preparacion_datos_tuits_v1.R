@@ -28,7 +28,13 @@ traerDatosTuits <- function(tipo_dato){
   
   if(tipo_dato == "base") {
  # ids
-
+    
+    # temp = tempfile(fileext = ".xlsx")
+    # dataURL <- "https://github.com/CVFH/Tuits_arg_2019/raw/master/Data/datos_base.xlsx"
+    # download.file(dataURL, destfile=temp, mode='wb')
+    # datos_base <- readxl::read_excel(temp)
+    # datos_base <- read_xlsx(path = "https://github.com/CVFH/Tuits_arg_2019/raw/master/Data/datos_base.xlsx")
+    
     datos_base <- read.csv("https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/datos_base.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
     devolver_data <- datos_base
  }
@@ -93,17 +99,22 @@ traerDatosTuits <- function(tipo_dato){
   # aquí tenemos un archivo -xlsx y los demás .csv. 
   # resultó más sencillo descargarlos independientemente y luego unirlos
   
-  presid1 <- "https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/alferdez.csv"
-  presid2 <- "https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/mauriciomacri.csv"
-  presid3 <- "https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/RLavagna.csv"
-  presid4 <- "https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/NicolasdelCano.csv"
-  presid5 <- "https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/juanjomalvinas.csv"
-  presid6 <- "https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/jlespert.csv"
+    # temp = tempfile(fileext = ".xlsx")
+    # dataURL <- "https://github.com/CVFH/Tuits_arg_2019/raw/master/Data/alferdez.xlsx"
+    # download.file(dataURL, destfile=temp, mode='wb')
+    # presid1 <- readxl::read_excel(temp)
+    # presid1 <- read_xlsx("Data/alferdez.xlsx")
+    
+  presid1 <- read.csv("https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/alferdez.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
+  presid2 <- read.csv("https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/mauriciomacri.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
+  presid3 <- read.csv("https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/RLavagna.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
+  presid4 <- read.csv("https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/NicolasdelCano.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
+  presid5 <- read.csv("https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/juanjomalvinas.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
+  presid6 <- read.csv("https://raw.githubusercontent.com/CVFH/Tuits_arg_2019/master/Data/jlespert.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
   
-  presid_filenames <- c(presid1, presid2, presid3, presid4, presid5, presid6)
+  joined_presid <- rbind(presid1, presid2, presid3, presid4, presid5, presid6)
   
-  joined_presid <- presid_filenames %>% 
-    map_dfr(read.csv, encoding = "UTF-8" ) %>% 
+  joined_presid <- joined_presid %>% 
     determinarTuitsCampaña(fecha_paso, fecha_grales)
   
   devolver_data <- joined_presid
