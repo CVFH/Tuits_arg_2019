@@ -121,7 +121,13 @@ linea_ranking_gobernadores <- joined_candidatos %>%
   filter(year(created_at) == 2019 & Cargo == "Gobernador") %>%
   ggplot(aes(x = date(created_at), fill = as.factor(ganador))) +
   geom_histogram(position = "identity", bins = 24, alpha = 0.5)  +
-  facet_wrap(~tipo_fecha, ncol = 2)
+  facet_wrap(~tipo_fecha, ncol = 2) +
+  labs(title = "Candidatos a gobernador",
+       x= "fecha",
+       y= "cantidad de tuits emitidos") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 90))
 
 #presid
 linea_ranking_presid <- joined_candidatos %>% 
@@ -129,10 +135,16 @@ linea_ranking_presid <- joined_candidatos %>%
   mutate(ganador = ifelse(Ranking==1, "ganador", "perdedor")) %>% 
   filter(year(created_at) == 2019 & Cargo == "Presidente") %>%
   ggplot(aes(x = date(created_at), fill = as.factor(ganador))) +
-  geom_histogram(position = "identity", bins = 24, alpha = 0.5) 
+  geom_histogram(position = "identity", bins = 24, alpha = 0.5) +
+  theme_minimal() +
+  labs(title = "Candidatos a presidente",
+       fill= "",
+       x = "",
+       y = "") +
+  theme(axis.text.x = element_text(angle = 90))
 
 # patchwork
-patchowrk_ranking <- linea_ranking_gobernadores / linea_ranking_presid
+patchowrk_ranking <- linea_ranking_gobernadores + linea_ranking_presid
 
 # podriamos sumarle rts?
 
@@ -145,9 +157,14 @@ rts_dia <- joined_candidatos %>%
 
 
 linea_rts <- ggplot(rts_dia, 
-                       aes(x = dia, y = rts_dia, fill = tipo_fecha)) +
-  geom_col(alpha = 0.5)  +
-  facet_wrap(~Cargo, ncol = 2)
+                       aes(x = dia, y = rts_dia, fill = Cargo)) +
+  geom_col(alpha = 0.5) + 
+    theme_base() +
+  labs(title= "Rts recibidos por día",
+       subtitle= "durante 2019",
+       x = "fecha",
+       y = "rts obtenidos") +
+  theme(axis.text = element_blank())
 
 
 #####

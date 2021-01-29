@@ -35,7 +35,8 @@ traerDatosTuits <- function(tipo_dato){
                        "screen_name", "user_id", "description", 
                        "location", 
                        "mention_screen_names", 
-                       "in_reply_to_screen_name")
+                       "in_reply_to_screen_name",
+                       "Campaña")
   
   if(tipo_dato == "base") {
     
