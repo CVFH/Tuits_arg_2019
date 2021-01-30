@@ -29,7 +29,7 @@ plotPointText <-function(df, aes1, aes2){
   plotPointText <- ggplot(df, 
                           aes1) +
     geom_point(size = 2,alpha = 0.8) +
-    geom_text(aes2,hjust=0, vjust=0, size=4, colour="black") 
+    geom_text(aes2,hjust=0, vjust=0.8, size=3, colour="black") 
 
   return(plotPointText)
 }
