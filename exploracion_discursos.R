@@ -87,28 +87,35 @@ candidatos_tokentweets <- rbind(joined_presid_tokentweets,
 #####
 # Lineas de tiempo ######
 
-fecha_elecciones_desdoblada <-as.Date("2019-06-16")
-fecha_campaña_desdoblada <-as.Date("2019-04-28")
-
-fecha_paso <- as.Date("2019-08-11")
-fecha_grales <- as.Date("2019-10-27")
-
+# intento de incorporar linea no funciono
+# fecha_elecciones_desdoblada <-as.Date("2019-06-16")
+# fecha_campaña_desdoblada <-as.Date("2019-04-28")
+# 
+# fecha_paso <- as.Date("2019-08-11")
+# fecha_grales <- as.Date("2019-10-27")
+# 
+# fechasdf <- tibble("fechas" = rep(c(as.Date("2019-06-16"), as.Date("2019-10-27"), as.Date("2019-04-28"),as.Date("2019-08-11")),each=600),
+#                      "timing" = rep(c("desdobladas", "simultáneas", "desdobladas", "simultáneas"),each=600))
+# geom_histogram(fechasdf, aes(x = "fechas", fill = "timing"), bins = 365, alpha = 0.5)  +
+#   
 # este grafico es hermoso
 linea_fecha <- ggplot(joined_candidatos %>%  
-                         filter(year(created_at) == 2019 ) %>%  
-                         arrange(tipo_fecha), 
-                       aes(x = date(created_at), fill = tipo_fecha)) +
+                        filter(year(created_at) == 2019 ) %>% 
+                        # filtramos el año electoral
+                        arrange(tipo_fecha), 
+                      aes(x = date(created_at), fill = tipo_fecha)) +
   geom_histogram(position = "identity", bins = 24, alpha = 0.5)  +
-  facet_wrap(~Cargo, ncol = 2) +
+  facet_wrap(~Cargo, ncol = 2) + 
+  # vemos separadamente candidatos a presidente y a gobernador
   theme_minimal() + 
   theme(legend.position = "bottom",
-        axis.text.x = element_text(angle = 90)) + 
+        axis.text.x = element_text(angle = 90)) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b") +
   labs(title = "Evolución de la emisión de tuits en el tiempo",
-         subtitle = "durante el 2019",
-         x = "cantidad de tuits emitidos",
-         y = "fecha",
-         fill = "")
-# pendiente. corregir fechas
+       subtitle = "durante el 2019",
+       y = "cantidad de tuits emitidos",
+       x = "fecha",
+       fill = "")
 
 # pendiente: ver si la baja pos elecciones corresponde al perdedor (ranking. buscar segundos)
 
@@ -611,10 +618,10 @@ plot.igraph(grafo_mutuas_dirigido_df,
             #edge.curved = T, # arista curva
             vertex.label.cex=0.8, # tamaño de las etiquetas de los nodos
             #main="Candidatos que recibieron más menciones", 
-            vertex.label.color="navy", # color de las etiquetas de los nodos
+            vertex.label.color="#025CB8", # color de las etiquetas de los nodos
             vertex.size=degree(grafo_mutuas_dirigido_df,mode = "in")*5,
             #vertex.shape = "none",
-            vertex.color="azure1", # color de nodos
+            vertex.color="#74D5F3", # color de nodos
             vertex.label.family="arial",
             vertex.frame.color= "grey80"
 )
@@ -710,6 +717,12 @@ ejemplo1 <- ncoincidencias_tema_tweets %>%
   arrange(desc(coincidencias_tema_tuit)) %>% 
   head(1)
 
+link_ejemplo1 <- joined_candidatos %>% 
+  filter(tweet_id == ejemplo1$tweet_id) %>% 
+  select(link)
+
+include_tweet(as.character(link_ejemplo1))
+
 print(ejemplo1)
 
 # cantidad de temas por tuit
@@ -719,7 +732,8 @@ ntemas_tweets <- temas_palabras_match_tokens_long %>%
 
 # unimos con base de datos
 cantidad_temas_tuit <- left_join(joined_candidatos %>% 
-                                   filter(Campaña == 1 ),
+                                   filter(Campaña == 1 ) %>% 
+                                   dplyr::mutate(tweet_id = as.factor(tweet_id)),
                                  fct_count(ntemas_tweets$tweet_id) %>% 
                                    dplyr::rename(tweet_id = "f")) %>% 
   select(tweet_id, screen_name, text, n) %>%
@@ -733,17 +747,25 @@ ejemplo2 <- cantidad_temas_tuit  %>%
   arrange(desc(cantidad_temas_tuit)) %>% 
   head(1)
 
-print(ejemplo2)
+link_ejemplo2 <- joined_candidatos %>% 
+  filter(tweet_id == ejemplo2$tweet_id) %>% 
+  select(link)
+
+include_tweet(as.character(link_ejemplo2))
 
 # histograma descriptivo / cantidad de temas por tuit
 
 plot_cantidad_temas_tuit <- cantidad_temas_tuit %>% 
   ggplot(aes(cantidad_temas_tuit)) +
-  geom_bar()
+  geom_bar(fill = "#0F92DA") +
+  theme_clean() +
+  labs(x = "Cantidad de temas por tuit",
+       y = "Cantidad de tuits asignados")
 
 # tuits con dos temas
 
 tuits_con_dos_temas <- ncoincidencias_tema_tweets %>% 
+  dplyr::mutate(tweet_id = as.factor(tweet_id)) %>% 
   left_join(cantidad_temas_tuit) %>% 
   filter(cantidad_temas_tuit == 2 ) %>% 
   group_by(tweet_id) %>% 
@@ -754,9 +776,13 @@ temas_juntos <- tuits_con_dos_temas %>%
   dplyr::count(tema1, tema2) %>% 
   arrange(desc(n))
 
-head(temas_juntos, 10)
+gt_temas_juntos <- head(temas_juntos, 10) %>%  gt::gt()
 
-tuits_con_unico_tema <- ncoincidencias_tema_tweets %>% 
+# pendiente: grafo de temas juntos??
+# exportar tabla??
+
+tuits_con_unico_tema <- ncoincidencias_tema_tweets  %>% 
+  dplyr::mutate(tweet_id = as.factor(tweet_id)) %>% 
   left_join(cantidad_temas_tuit) %>% 
   filter(cantidad_temas_tuit == 1 )
 
@@ -766,6 +792,25 @@ temas_en_tuits_con_unico_tema <- fct_count(tuits_con_unico_tema$temas)
 # temas mas populares
 
 temas_populares <- fct_count(ncoincidencias_tema_tweets$temas)
+
+head(temas_populares, 10) %>% 
+  gt::gt() %>% 
+  gt::tab_header(
+    title = "Temas más populares entre los candidatos",
+    subtitle = "(conteo manual)") %>% 
+  gt::tab_style(
+    style=  cell_fill(color = "#00BFFF", alpha = 0.5),
+    locations = cells_title(groups = c("title", "subtitle"))) %>% 
+  gt::tab_style(
+    style=  cell_fill(color = "#E9EDF1", alpha = 0.5),
+    locations = cells_body()) %>% 
+  gt::tab_style(
+    style= cell_text(
+      color = "#050505",
+      align = "center",
+      v_align = "middle",
+      weight = "lighter"),
+    locations = cells_body())
 # hacer tabla
 # se ve tambien tuits sin clasificar
 
@@ -781,11 +826,13 @@ temas_candidatos_absolutos <- ncoincidencias_tema_tweets %>%
 
 plot_temas_candidatos_absolutos <- temas_candidatos_absolutos %>% 
   dplyr::mutate(screen_name = as.factor(screen_name)) %>% 
-  ggplot(aes(x = fct_reorder(screen_name, Cargo), y = temas, size= n, colour = Distrito)) +
+  ggplot(aes(x = fct_reorder(screen_name, Distrito), y = temas, size= n, colour = Distrito)) +
            geom_count() + 
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 90),
-        legend.position = "none")
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        legend.position = "none") +
+  labs(x = "", y = "")
+# por algun motivo no me ordena algunos candidatos
 
 # cuenta relativa
 # ¿qué proporción de los tuits emitidos por i candidato fueron a x tema?
@@ -808,20 +855,28 @@ plot_temas_candidatos_relativos <- temas_candidatos_relativos %>%
   ggplot(aes(x = fct_reorder(screen_name, Cargo), y = n_relativo, fill = temas)) + 
   geom_col(position = "stack") + 
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 90))
+  theme(axis.text.x = element_text(angle = 90)) + 
+  theme(legend.position = "bottom",
+        legend.key.size = unit(0.4, 'cm'), #change legend key size
+        legend.title = element_blank(),
+        legend.text = element_text(size=7)) + 
+  labs(title = "Proporción de tutis dedicados a cada tema",
+       subtitle = "por candidato",
+       x = "",
+       y = "%")
 
 # hora de racionalizar temas 
 # lo hacemos manualmente
 # para eso volvemos a la primer base de datos long
 
-temas_populares
+#temas_populares
 
 # no funco por algun motivo
 
 temas_palabras_match_racionalizados_long <- temas_palabras_match_tokens_long %>%
   dplyr:: mutate( temas = 
   forcats::fct_collapse(temas,
-               economía = c("	inflación", "deuda", "tc"),
+               economía = c("inflación", "deuda", "tc"),
                producción = c("industria", "agropecuario", "inversion", "competitividad"),
                infraestructura = c("obra_pública", "caminos", "alumbrado", "transporte", "telecomunicaciones"),
                servicios = c("servicios_agua", "higiene"),
@@ -862,16 +917,24 @@ plot_temas_candidatos_racionalizados_absolutos <- temas_candidatos_racionalizado
   dplyr::mutate(screen_name = as.factor(screen_name)) %>% 
   ggplot(aes(x = fct_reorder(screen_name, Cargo), y = temas, size = veces_tema_candidato, colour = Distrito)) +
   geom_count() + 
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 90),
-        legend.position = "none")
-
+  theme_minimal()  +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        legend.position = "none") +
+  labs(x = "", y = "")
 
 plot_temas_candidatos_racionalizados_relativos <- temas_candidatos_racionalizados %>% 
   ggplot(aes(x = fct_reorder(screen_name, Cargo), y = n_relativo, fill = temas)) + 
   geom_col(position = "stack") + 
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 90))
+  theme_minimal() + 
+  theme(legend.position = "bottom",
+        legend.key.size = unit(0.4, 'cm'), #change legend key size
+        legend.title = element_blank(),
+        legend.text = element_text(size=7)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + 
+  labs(title = "Proporción de tutis dedicados a cada tema",
+       subtitle = "por candidato. Versión reducida",
+       x = "",
+       y = "%")
 # por ahi se podria rellenar temas sin clasificar
 
 
