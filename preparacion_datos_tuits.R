@@ -32,6 +32,7 @@ traerDatosTuits <- function(tipo_dato){
                        "text", 
                        "rts", "fav_count", 
                        "tweet_id", 
+                       "link",
                        "screen_name", "user_id", "description", 
                        "location", 
                        "mention_screen_names", 
