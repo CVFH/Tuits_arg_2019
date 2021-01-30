@@ -37,6 +37,7 @@ traerDatosTuits <- function(tipo_dato){
                        "mention_screen_names", 
                        "in_reply_to_screen_name",
                        "followers_count",
+                       "friends_count",
                        "Campaña")
   
   if(tipo_dato == "base") {
