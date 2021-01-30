@@ -92,7 +92,7 @@ traerDatosTuits <- function(tipo_dato){
     determinarTuitsCampaña(fecha_paso, fecha_grales)
   
   joined_gobernadores <- rbind(simultaneas_df, desdobladas_df)  %>% 
-    select(select_columnas)
+    select(all_of(select_columnas))
   
   devolver_data <- joined_gobernadores
  
@@ -121,11 +121,11 @@ traerDatosTuits <- function(tipo_dato){
   joined_presid <- presid_filenames %>% 
     map_dfr(read.csv, encoding = "UTF-8", stringsAsFactors = FALSE ) %>% 
     determinarTuitsCampaña(fecha_paso, fecha_grales) %>% 
-    select(select_columnas)
+    select(all_of(select_columnas))
 
   presid1 <- read.csv(presid1, encoding = "UTF-8", stringsAsFactors = FALSE) %>% 
     determinarTuitsCampaña(fecha_paso, fecha_grales) %>% 
-    select(select_columnas)
+    select(all_of(select_columnas))
   
   joined_presid <- joined_presid %>% rbind(presid1)
   
