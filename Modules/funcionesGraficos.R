@@ -37,7 +37,7 @@ plotPointText <-function(df, aes1, aes2){
 formatPlot <- function(plot, plottitle="", plotsubtitle="", xlabel="", ylabel="", plotcaption=""){
   
   formatted_plot <- plot +
-    theme_clean() +
+    theme_minimal() +
     labs(title = plottitle, 
          caption = plotcaption,
          subtitle = plotsubtitle,

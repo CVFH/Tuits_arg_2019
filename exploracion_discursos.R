@@ -101,7 +101,7 @@ candidatos_tokentweets <- rbind(joined_presid_tokentweets,
 # este grafico es hermoso
 linea_fecha <- ggplot(joined_candidatos %>%  
                         filter(year(created_at) == 2019 ) %>% 
-                        # filtramos el año electoral
+                        # filtramos el año electoral 
                         arrange(tipo_fecha), 
                       aes(x = date(created_at), fill = tipo_fecha)) +
   geom_histogram(position = "identity", bins = 24, alpha = 0.5)  +
@@ -113,8 +113,8 @@ linea_fecha <- ggplot(joined_candidatos %>%
   scale_x_date(date_breaks = "1 month", date_labels = "%b") +
   labs(title = "Evolución de la emisión de tuits en el tiempo",
        subtitle = "durante el 2019",
-       y = "cantidad de tuits emitidos",
-       x = "fecha",
+       y = "Cantidad de tuits emitidos",
+       x = "",
        fill = "")
 
 # pendiente: ver si la baja pos elecciones corresponde al perdedor (ranking. buscar segundos)
@@ -952,10 +952,10 @@ plot_matches_vivienda <- ggplot(matches_vivienda_paralell,
                    aes(x, id = id, split = y, value = n)) + #  INICIA GRAFICO
   geom_parallel_sets(aes(fill = screen_name), alpha = 0.7, axis.width = 0.1, show.legend = FALSE) +
   theme_minimal() +
-  geom_parallel_sets_axes(axis.width = 0.1, color = "black", fill = "gray20") +
-  geom_parallel_sets_labels(colour = 'white', angle= 0) +
+  geom_parallel_sets_axes(axis.width = 0.1, color = "lightgray", fill = "white") +
+  geom_parallel_sets_labels(colour = 'black', angle= 0) +
   theme_no_axes() +
-  theme(panel.background = element_rect(fill = "gray20"))
+  theme(panel.background = element_rect(fill = "white", colour = "white"))
 
 #####
 # Topic modeling ######
@@ -970,10 +970,11 @@ plot_matches_vivienda <- ggplot(matches_vivienda_paralell,
 candidatos_tokens_dtm <- joined_candidatos %>% 
   tokenizarTextoTuits(tipo_token = "ngrams") %>% 
   limpiarTokens(bigramas = TRUE, palabras_web = TRUE, hashtags = TRUE, mentions = TRUE) %>% 
+  subset(!str_detect(tokens, "NA NA")) %>% 
   dplyr::count(tweet_id, tokens) %>%
   cast_dtm(tweet_id, tokens, n)
 
-candidatos_tokens_LDA <- LDA(candidatos_tokens_dtm, k = 10, control = list(seed = 1234))
+candidatos_tokens_LDA <- LDA(candidatos_tokens_dtm, k = 8, control = list(seed = 1234))
 
 #per-topic-per-word probabilities
 
@@ -983,21 +984,29 @@ candidatos_tokens_topics_top_terms <- candidatos_tokens_topics %>%
   group_by(topic) %>%
   top_n(15, beta) %>%
   ungroup() %>%
-  arrange(topic, -beta)
+  arrange(topic, -beta) 
 
-candidatos_tokens_topics_top_terms_grafico <- candidatos_tokens_topics_top_terms  %>%
+plot_topics_terminos <- candidatos_tokens_topics_top_terms  %>%
   mutate(term = reorder_within(term, beta, topic)) %>%
   ggplot(aes(beta, term, fill = factor(topic))) +
   geom_col(show.legend = FALSE) +
-  facet_wrap(~ topic, scales = "free") +
-  scale_y_reordered() 
+  facet_wrap(~ topic, scales = "free", ncol = 4) +
+  scale_y_reordered() +
+  theme_clean() +
+  theme(strip.text = element_text(size = 7),
+        axis.text.y = element_text(size = 7, hjust = 0.8),
+        axis.text.x = element_blank())  +
+  labs(title = "Términos por temas",
+       subtitle = "Palabras más probablemente pertenecientes a un mismo tópico",
+       x = "beta",
+       y = "")
 
 # per-document-per-topic probabilities,  γ (“gamma”).
 
 
 candidatos_tuits_topics <- tidy(candidatos_tokens_LDA, matrix = "gamma") %>% 
   dplyr::rename(tweet_id = "document") %>% 
-  left_join(joined_candidatos) %>% 
+  left_join(joined_candidatos %>% dplyr::mutate(tweet_id = as.character(tweet_id) )) %>% 
   select(tweet_id, topic, gamma, screen_name, fav_count, rts, created_at)
 
 candidatos_tuits_topics_top <- candidatos_tuits_topics %>% 
@@ -1006,44 +1015,100 @@ candidatos_tuits_topics_top <- candidatos_tuits_topics %>%
   left_join(candidatos_tuits_topics) %>% 
   left_join(datos_base)
 
+
 #graficando.
 
 #agrupados por  screen name # hay diferencias, dificil sistematizarlas
-candidatos_tuits_topics_top_grouped <- candidatos_tuits_topics_top %>% 
+candidatos_tuits_topics_top_grouped_sname <- candidatos_tuits_topics_top %>% 
   dplyr::count(screen_name, topic)
 
-candidatos_tuits_topics_top_grouped %>% 
+plot_topics_candidatos  <- candidatos_tuits_topics_top_grouped_sname %>% 
   ggplot(aes(topic, n, colour= screen_name)) +
   geom_point()  +
-  facet_wrap(~ screen_name) 
+  facet_wrap(~ screen_name, ncol= 3) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  labs(title= "Temas preferidos por los candidatos",
+       subtitle = "Medidos a partir de cantidad de tuits emitidos por candidato que probablemente están asociados a un tema",
+       x = "Cantidad de tuits",
+       "Tópicos")
 
 #agrupados por cargo # V INTERESTING!!!!!!!!!
-candidatos_tuits_topics_top_grouped <- candidatos_tuits_topics_top %>% 
-  dplyr::count(Cargo, topic)
 
-candidatos_tuits_topics_top_grouped %>% 
-  ggplot(aes(topic, n, colour= Cargo)) +
-  geom_point() 
+# calculamos proporcionalmente
+tutis_totales_cargo <- joined_candidatos %>% 
+  filter(Campaña==1) %>% 
+  dplyr::count(Cargo) %>% 
+  dplyr::rename(tuits_totales_cargo = "n")
+
+candidatos_tuits_topics_top_grouped_cargo <- candidatos_tuits_topics_top %>% 
+  dplyr::count(Cargo, topic) %>% 
+    left_join(tutis_totales_cargo) %>% 
+    dplyr::mutate(proporcion_tuits_topic_cargo = n/tuits_totales_cargo *100 )
+
+plot_topics_cargo <- candidatos_tuits_topics_top_grouped_cargo %>% 
+  ggplot(aes(topic, proporcion_tuits_topic_cargo, colour= Cargo)) +
+  geom_point(size = 3) +
+  theme_minimal() +
+  scale_x_continuous(breaks = seq(0, 8, 1)) +
+  labs(title= "Temas preferidos por los candidatos",
+       subtitle = "según la cartera a la que compiten",
+       x = "Tópicos",
+       y = "Cantidad de tuits",
+       colour = "") +
+  theme(legend.position = "bottom")
 
 
 #agrupados por distrito # hay diferencias, dificil sistematizarlas
-candidatos_tuits_topics_top_grouped <- candidatos_tuits_topics_top %>% 
-  dplyr::count(Distrito, topic)
 
-candidatos_tuits_topics_top_grouped %>% 
-  ggplot(aes(topic, n, colour= Distrito)) +
-  geom_point() +
-  facet_wrap(~ Distrito)
+tutis_totales_distrito <- joined_candidatos %>% 
+  filter(Campaña==1) %>% 
+  dplyr::count(Distrito) %>% 
+  dplyr::rename(tuits_totales_distrito = "n")
+
+candidatos_tuits_topics_top_grouped_distrito <- candidatos_tuits_topics_top %>% 
+  dplyr::count(Distrito, topic) %>% 
+  left_join(tutis_totales_distrito) %>% 
+  dplyr::mutate(proporcion_tuits_topic_distrito = n/tuits_totales_distrito *100 )
+
+plot_topics_distrito <- candidatos_tuits_topics_top_grouped_distrito %>% 
+  ggplot(aes(topic, proporcion_tuits_topic_distrito, colour= Distrito)) +
+  geom_point(size = 3) +
+  facet_wrap(~ Distrito) +
+  theme_minimal() +
+  scale_x_continuous(breaks = seq(0, 8, 1)) +
+  labs(title= "Temas preferidos por los candidatos",
+       subtitle = "según el distrito en el que compiten",
+       x = "Tópicos",
+       y = "Cantidad de tuits",
+       colour = "") +
+  theme(legend.position = "none")
 
 #agrupados por tipo_fecha # de nueboo v interesting
 
-candidatos_tuits_topics_top_grouped <- candidatos_tuits_topics_top %>% 
-  dplyr::count(tipo_fecha, topic)
+tutis_totales_tfecha <- joined_candidatos %>% 
+  filter(Campaña==1) %>% 
+  dplyr::count(tipo_fecha) %>% 
+  dplyr::rename(tuits_totales_tfecha = "n")
 
-candidatos_tuits_topics_top_grouped %>% 
-  ggplot(aes(topic, n, colour= tipo_fecha)) +
-  geom_point() 
+candidatos_tuits_topics_top_grouped_tfecha <- candidatos_tuits_topics_top %>% 
+  dplyr::count(tipo_fecha, topic) %>% 
+  left_join(tutis_totales_tfecha) %>% 
+  dplyr::mutate(proporcion_tuits_topic_tfecha = n/tuits_totales_tfecha*100 )
 
+plot_topics_tfecha <- candidatos_tuits_topics_top_grouped_tfecha %>% 
+  ggplot(aes(topic, proporcion_tuits_topic_tfecha, colour= tipo_fecha)) +
+  geom_point(size = 3) +
+  theme_minimal() +
+  scale_x_continuous(breaks = seq(0, 8, 1)) +
+  labs(title= "Temas preferidos por los candidatos",
+       subtitle = "según el calendario electoral",
+       x = "Tópicos",
+       y = "Cantidad de tuits",
+       colour = "") +
+  theme(legend.position = "bottom")
+
+# otro tipo de graficos. boxplots
 
 #graficando por candidato
 candidatos_tuits_topics_top %>%
@@ -1079,6 +1144,7 @@ candidatos_tuits_topics_top %>%
 candidatos_tokens_dtm3 <- joined_candidatos %>% 
   tokenizarTextoTuits(tipo_token = "ngrams") %>% 
   limpiarTokens(bigramas = TRUE, palabras_web = TRUE, hashtags = TRUE, mentions = TRUE) %>% 
+  subset(!str_detect(tokens, "NA NA")) %>% 
   dplyr::count(tweet_id, tokens) %>%
   cast_dtm(tweet_id, tokens, n)
 
@@ -1121,6 +1187,34 @@ candidatos_tuits_topics_top3 %>%
   facet_wrap(~ screen_name) +
   labs(x = "topic", y = expression(gamma))
 
+
+
+# PROBANDO: CON 2 TEMAS t tokentw ####
+# preparando datos
+candidatos_tokens_dtm2 <- joined_candidatos %>% 
+  tokenizarTextoTuits(tipo_token = "tweets") %>% 
+  limpiarTokens(palabras_web = TRUE, hashtags = TRUE, mentions = TRUE) %>% 
+  dplyr::count(tweet_id, tokens) %>%
+  cast_dtm(tweet_id, tokens, n)
+
+candidatos_tokens_LDA2 <- LDA(candidatos_tokens_dtm2, k = 2, control = list(seed = 1234))
+
+#per-topic-per-word probabilities
+
+candidatos_tokens_topics2 <- tidy(candidatos_tokens_LDA2, matrix = "beta")
+
+candidatos_tokens_topics_top_terms2 <- candidatos_tokens_topics2 %>%
+  group_by(topic) %>%
+  top_n(15, beta) %>%
+  ungroup() %>%
+  arrange(topic, -beta)
+
+candidatos_tokens_topics_top_terms_grafico2 <- candidatos_tokens_topics_top_terms2  %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(aes(beta, term, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  scale_y_reordered() 
 
 #####
 # PCA 
