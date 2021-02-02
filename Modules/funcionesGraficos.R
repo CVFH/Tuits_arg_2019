@@ -3,6 +3,7 @@
 
 library(tidyverse)
 library(ggplot2)
+library(gt)
 
 plotPoint <- function(df, aes){
   
@@ -48,3 +49,33 @@ formatPlot <- function(plot, plottitle="", plotsubtitle="", xlabel="", ylabel=""
   
 }
 
+formatoTabla <- function(tabla, titulo = "", subtitulo = "", back_color = "#0B0B0B") {
+  
+  # recibe dataframe
+  # usa gt para devolverlo con formato estéticamente afín a nuestra web
+  
+  tabla_formato <- tabla %>%  gt() %>% 
+    gt::tab_header(
+      title = titulo,
+      subtitle = subtitulo) %>% 
+    gt::tab_style(
+      style=  cell_fill(color = "#00BFFF", alpha = 0.5),
+      locations = cells_title(groups = c("title", "subtitle"))) %>% 
+    gt::tab_style(
+      style= cell_text(
+        v_align = "middle",
+        align = "center"),
+      locations = cells_stubhead()) %>% 
+    gt::tab_style(
+      style=  cell_fill(color = "#E9EDF1", alpha = 0.5),
+      locations = cells_body()) %>% 
+    gt::tab_style(
+      style= cell_text(
+        color = back_color,
+        align = "center",
+        v_align = "middle",
+        weight = "lighter"),
+      locations = cells_body())
+  
+  return(tabla_formato)
+}
