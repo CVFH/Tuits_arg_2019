@@ -49,7 +49,7 @@ formatPlot <- function(plot, plottitle="", plotsubtitle="", xlabel="", ylabel=""
   
 }
 
-formatoTabla <- function(tabla, titulo = "", subtitulo = "", back_color = "#0B0B0B") {
+formatoTabla <- function(tabla, titulo = "", subtitulo = "", back_color = "#E9EDF1") {
   
   # recibe dataframe
   # usa gt para devolverlo con formato estéticamente afín a nuestra web
@@ -67,11 +67,11 @@ formatoTabla <- function(tabla, titulo = "", subtitulo = "", back_color = "#0B0B
         align = "center"),
       locations = cells_stubhead()) %>% 
     gt::tab_style(
-      style=  cell_fill(color = "#E9EDF1", alpha = 0.5),
+      style=  cell_fill(color = back_color, alpha = 0.5),
       locations = cells_body()) %>% 
     gt::tab_style(
       style= cell_text(
-        color = back_color,
+        color = "#0B0B0B",
         align = "center",
         v_align = "middle",
         weight = "lighter"),
